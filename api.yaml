@@ -134,6 +134,9 @@ paths:
             schema:
               type: object
               properties:
+                login:
+                  type: string
+                  description: Логин
                 email:
                   type: string
                   description: Эл. Почта
