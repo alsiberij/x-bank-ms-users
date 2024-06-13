@@ -2,8 +2,8 @@ package http
 
 import (
 	"net/http"
-	"practice/cerrors"
-	"practice/core/web"
+	"x-bank-users/cerrors"
+	"x-bank-users/core/web"
 )
 
 type (

@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"log"
-	"practice/config"
-	"practice/core/web"
-	"practice/transport/http"
+	"x-bank-users/config"
+	"x-bank-users/core/web"
+	"x-bank-users/transport/http"
 )
 
 var (

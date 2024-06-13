@@ -1,6 +1,6 @@
 package ercodes
 
-import "practice/cerrors"
+import "x-bank-users/cerrors"
 
 const (
 	_ cerrors.Code = -iota
