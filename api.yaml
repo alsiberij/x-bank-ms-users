@@ -123,6 +123,30 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/auth/recovery:
+    post:
+      summary: Восстановление пароля по email
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Эл. Почта
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
   schemas:
