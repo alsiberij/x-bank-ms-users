@@ -1,0 +1,159 @@
+openapi: 3.0.1
+info:
+  title: Sample API
+  description: API description in Markdown.
+  version: 1.0.0
+servers:
+  - url: 'https://x-bank.alsiberij.com/ms-users/'
+paths:
+  /v1/auth/sign-up:
+    post:
+      summary: Регистрация пользователя в системе
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Эл. почта
+                login:
+                  type: string
+                  description: Логин
+                password:
+                  type: string
+                  description: Пароль
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/verification:
+    post:
+      summary: Активация аккаунт по коду из email
+      tags:
+        - Auth
+      parameters:
+        - in: query
+          name: code
+          schema:
+            type: string
+          description: Код активации
+          required: true
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/sign-in:
+    post:
+      summary: Вход в систему
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  description: Логин
+                password:
+                  type: string
+                  description: Пароль
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/sign-in/2fa:
+    post:
+      summary: Проверка второго фактора
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                2faToken:
+                  type: string
+                  description: Токен полученный на этапе входа
+                code:
+                  type: string
+                  description: Код второго фактора
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        internalCode:
+          type: string
+          description: Внутренний код ошибки
+        devMessage:
+          type: string
+          description: Сообщение для разработчика
+        userMessage:
+          type: string
+          description: Сообщение для пользователя
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        refreshToken:
+          type: string
+          description: Refresh token
+
+    SignInResponse:
+      type: object
+      properties:
+        2faToken:
+          type: string
+          description: Токен для вызова запроса проверки второго фактора
+        tokens:
+          $ref: '#/components/schemas/TokenPair'
