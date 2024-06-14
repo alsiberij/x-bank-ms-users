@@ -24,7 +24,7 @@ func main() {
 
 	knife := swissknife.NewService()
 
-	service := web.NewService(&knife, &knife, &knife, &knife)
+	service := web.NewService(&knife, &knife, &knife, &knife, &knife)
 	transport := http.NewTransport(service)
 
 	errCh := transport.Start(*addr)

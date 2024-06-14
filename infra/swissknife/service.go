@@ -3,6 +3,7 @@ package swissknife
 import (
 	"context"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"sync"
 	"x-bank-users/cerrors"
@@ -87,4 +88,8 @@ func (s *Service) VerifyActivationCode(_ context.Context, code string) (int64, e
 func (s *Service) SendActivationCode(_ context.Context, email, code string) error {
 	fmt.Printf("Письмо отправлено на %s: Ссылка на активации: https://example.com/?code=%s", email, code)
 	return nil
+}
+
+func (s *Service) Hash(_ context.Context, b []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(b, bcrypt.DefaultCost)
 }
