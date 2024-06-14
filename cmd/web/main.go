@@ -5,6 +5,7 @@ import (
 	"log"
 	"x-bank-users/config"
 	"x-bank-users/core/web"
+	"x-bank-users/infra/swissknife"
 	"x-bank-users/transport/http"
 )
 
@@ -16,13 +17,14 @@ var (
 func main() {
 	flag.Parse()
 
-	conf, err := config.Read(*configFile)
+	_, err := config.Read(*configFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	_ = conf
 
-	service := web.NewService()
+	knife := swissknife.NewService()
+
+	service := web.NewService(&knife, &knife, &knife, &knife)
 	transport := http.NewTransport(service)
 
 	errCh := transport.Start(*addr)
