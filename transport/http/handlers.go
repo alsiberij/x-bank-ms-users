@@ -10,6 +10,12 @@ func (t *Transport) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Transport) handlerActivateAccount(w http.ResponseWriter, r *http.Request) {
-	// TODO Игорь
-	t.service.ActivateAccount()
+	code := r.URL.Query().Get("code")
+	err := t.service.ActivateAccount(r.Context(), code)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
