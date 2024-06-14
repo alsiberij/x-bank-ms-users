@@ -1,16 +1,15 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 )
 
 func (t *Transport) handlerSignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("SIGN UP")
-	// TODO
+	// TODO Алёна
+	t.service.SignUp()
 }
 
 func (t *Transport) handlerActivateAccount(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("VERIFICATION")
-	// TODO
+	// TODO Игорь
+	t.service.ActivateAccount()
 }

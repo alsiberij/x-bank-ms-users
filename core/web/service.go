@@ -24,9 +24,9 @@ func NewService(
 }
 
 func (s *Service) SignUp() {
-
+	// TODO Алёна
 }
 
-func (s *Service) VerifyAccount() {
-
+func (s *Service) ActivateAccount() {
+	// TODO Игорь
 }
