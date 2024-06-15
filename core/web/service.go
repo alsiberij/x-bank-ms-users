@@ -60,6 +60,15 @@ func (s *Service) SignUp(ctx context.Context, login, password, email string) err
 	return err
 }
 
-func (s *Service) ActivateAccount() {
-	// TODO Игорь
+func (s *Service) ActivateAccount(ctx context.Context, code string) error {
+	userId, err := s.activationCodeCache.VerifyActivationCode(ctx, code)
+	if err != nil {
+		return err
+	}
+	err = s.userStorage.ActivateUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
