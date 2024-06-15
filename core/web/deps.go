@@ -21,7 +21,7 @@ type (
 		SendActivationCode(ctx context.Context, email, code string) error
 	}
 
-	HashFunc interface {
-		Hash(ctx context.Context, b []byte) ([]byte, error)
+	PasswordHasher interface {
+		HashPassword(ctx context.Context, b []byte, cost int) ([]byte, error)
 	}
 )

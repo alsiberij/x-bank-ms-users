@@ -1,8 +1,6 @@
 package web
 
-import (
-	"context"
-)
+import "context"
 
 type (
 	Service struct {
@@ -10,7 +8,7 @@ type (
 		randomGenerator        RandomGenerator
 		activationCodeCache    ActivationCodeCache
 		activationCodeNotifier ActivationCodeNotifier
-		hashFunc               HashFunc
+		hashFunc               PasswordHasher
 	}
 )
 
@@ -19,7 +17,7 @@ func NewService(
 	randomGenerator RandomGenerator,
 	activationCodeCache ActivationCodeCache,
 	activationCodeNotifier ActivationCodeNotifier,
-	hashFunc HashFunc,
+	hashFunc PasswordHasher,
 ) Service {
 	return Service{
 		userStorage:            userStorage,
@@ -33,6 +31,7 @@ func NewService(
 const (
 	emailCodeLength  = 10
 	emailCodeCharset = "0123456789"
+	hashCost         = 10
 )
 
 func (s *Service) SignUp(ctx context.Context, login, password, email string) error {
@@ -42,7 +41,7 @@ func (s *Service) SignUp(ctx context.Context, login, password, email string) err
 		return err
 	}
 
-	hash, err := s.hashFunc.Hash(ctx, []byte(password))
+	hash, err := s.hashFunc.HashPassword(ctx, []byte(password), hashCost)
 	if err != nil {
 		return err
 	}
