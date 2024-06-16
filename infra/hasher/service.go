@@ -3,6 +3,8 @@ package hasher
 import (
 	"context"
 	"golang.org/x/crypto/bcrypt"
+	"x-bank-users/cerrors"
+	"x-bank-users/ercodes"
 )
 
 type (
@@ -15,5 +17,10 @@ func NewService() Service {
 }
 
 func (s *Service) HashPassword(_ context.Context, password []byte, cost int) ([]byte, error) {
-	return bcrypt.GenerateFromPassword(password, cost)
+	passwordHash, err := bcrypt.GenerateFromPassword(password, cost)
+
+	if err != nil {
+		return nil, cerrors.NewErrorWithUserMessage(ercodes.ServerError, err, "Ошибка хэширования пароля")
+	}
+	return passwordHash, nil
 }
