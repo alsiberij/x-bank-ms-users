@@ -5,6 +5,7 @@ import (
 	"log"
 	"x-bank-users/config"
 	"x-bank-users/core/web"
+	"x-bank-users/infra/hasher"
 	"x-bank-users/infra/swissknife"
 	"x-bank-users/transport/http"
 )
@@ -23,8 +24,9 @@ func main() {
 	}
 
 	knife := swissknife.NewService()
+	passwordHasher := hasher.NewService()
 
-	service := web.NewService(&knife, &knife, &knife, &knife)
+	service := web.NewService(&knife, &knife, &knife, &knife, &passwordHasher)
 	transport := http.NewTransport(service)
 
 	errCh := transport.Start(*addr)

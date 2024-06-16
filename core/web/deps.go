@@ -20,4 +20,8 @@ type (
 	ActivationCodeNotifier interface {
 		SendActivationCode(ctx context.Context, email, code string) error
 	}
+
+	PasswordHasher interface {
+		HashPassword(ctx context.Context, b []byte, cost int) ([]byte, error)
+	}
 )
