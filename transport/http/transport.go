@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"x-bank-users/cerrors"
 	"x-bank-users/core/web"
+	"x-bank-users/ercodes"
 )
 
 type (
@@ -18,7 +19,9 @@ func NewTransport(service web.Service) Transport {
 		service: service,
 		errorHandler: errorHandler{
 			defaultStatusCode: http.StatusBadRequest,
-			statusCodes:       map[cerrors.Code]int{},
+			statusCodes: map[cerrors.Code]int{
+				ercodes.BcryptHashing: http.StatusInternalServerError,
+			},
 		},
 	}
 

@@ -18,9 +18,9 @@ func NewService() Service {
 
 func (s *Service) HashPassword(_ context.Context, password []byte, cost int) ([]byte, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword(password, cost)
-
 	if err != nil {
-		return nil, cerrors.NewErrorWithUserMessage(ercodes.ServerError, err, "Ошибка хэширования пароля")
+		return nil, cerrors.NewErrorWithUserMessage(ercodes.BcryptHashing, err, "Ошибка хэширования пароля")
 	}
+
 	return passwordHash, nil
 }

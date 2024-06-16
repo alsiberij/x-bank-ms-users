@@ -7,5 +7,5 @@ const (
 
 	UserNotFound
 	ActivationCodeNotFound
-	ServerError = 500
+	BcryptHashing
 )
