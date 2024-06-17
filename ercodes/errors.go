@@ -8,4 +8,5 @@ const (
 	UserNotFound
 	ActivationCodeNotFound
 	BcryptHashing
+	RandomGeneration
 )
