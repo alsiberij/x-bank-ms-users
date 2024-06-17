@@ -94,15 +94,14 @@ paths:
       summary: Проверка второго фактора
       tags:
         - Auth
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                2faToken:
-                  type: string
-                  description: Токен полученный на этапе входа
                 code:
                   type: string
                   description: Код второго фактора
@@ -150,8 +149,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /v1/auth/refresh:
+    post:
+      summary: Получение новой пары токенов по рефреш токену
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  description: Рефреш токен
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 
 components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
   schemas:
     Error:
       type: object
