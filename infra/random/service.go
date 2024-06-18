@@ -3,38 +3,34 @@ package random
 import (
 	"context"
 	"crypto/rand"
-	"sync"
+	"math/big"
 	"x-bank-users/cerrors"
 	"x-bank-users/ercodes"
 )
 
 type Service struct {
-	buf []byte
-	res []byte
-	mu  *sync.Mutex
 }
 
 func NewService() Service {
-	return Service{
-		mu: &sync.Mutex{},
-	}
+	return Service{}
 }
 
 func (s *Service) GenerateString(_ context.Context, set string, size int) (string, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	res := make([]byte, size)
+	for i := 0; i < size; i++ {
+		randomNum, err := s.GenerateRandomNum(size)
+		if err != nil {
+			return "", cerrors.NewErrorWithUserMessage(ercodes.RandomGeneration, err, "Ошибка генерации случайной строки")
+		}
+		res[i] = set[randomNum]
+	}
+	return string(res), nil
+}
 
-	s.res = nil
-	s.buf = make([]byte, size)
-
-	_, err := rand.Read(s.buf)
+func (s *Service) GenerateRandomNum(n int) (int, error) {
+	num, err := rand.Int(rand.Reader, big.NewInt(int64(n)))
 	if err != nil {
-		return "", cerrors.NewErrorWithUserMessage(ercodes.RandomGeneration, err, "Ошибка генерации строки")
+		return 0, cerrors.NewErrorWithUserMessage(ercodes.RandomGeneration, err, "Ошибка генерации случайного числа")
 	}
-
-	for _, b := range s.buf {
-		s.res = append(s.res, set[int(b)%len(set)])
-	}
-
-	return string(s.res), nil
+	return int(num.Int64()), nil
 }
