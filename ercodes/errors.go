@@ -10,4 +10,5 @@ const (
 	BcryptHashing
 	RandomGeneration
 	HS512Authorization
+	RS256Authorization
 )
