@@ -12,4 +12,5 @@ const (
 	HS512Authorization
 	RS256Authorization
 	AccountNotActivated
+	WrongPassword
 )
