@@ -66,3 +66,21 @@ func (h *errorHandler) setMethodNotAllowedError(w http.ResponseWriter) {
 		UserMessage: "Метод не поддерживается",
 	}, http.StatusMethodNotAllowed)
 }
+
+func (h *errorHandler) setFatalError(w http.ResponseWriter, v interface{}) {
+	var devMessage string
+
+	switch T := v.(type) {
+	case error:
+		devMessage = T.Error()
+	case string:
+		devMessage = T
+	default:
+		devMessage = "UNKNOWN FATAL ERROR"
+	}
+
+	h.setTransportError(w, TransportError{
+		DevMessage:  devMessage,
+		UserMessage: "Фатальная ошибка",
+	}, http.StatusInternalServerError)
+}
