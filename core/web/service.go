@@ -11,11 +11,12 @@ type (
 		userStorage            UserStorage
 		randomGenerator        RandomGenerator
 		activationCodeCache    ActivationCodeStorage
-		activationCodeNotifier ActivationCodeNotifier
+		activationCodeNotifier AuthNotifier
 		passwordHasher         PasswordHasher
 		refreshTokenStorage    RefreshTokenStorage
 		twoFactorCodeStorage   TwoFactorCodeStorage
 		twoFactorCodeNotifier  TwoFactorCodeNotifier
+		recoveryCodeStorage    RecoveryCodeStorage
 	}
 )
 
@@ -23,11 +24,12 @@ func NewService(
 	userStorage UserStorage,
 	randomGenerator RandomGenerator,
 	activationCodeCache ActivationCodeStorage,
-	activationCodeNotifier ActivationCodeNotifier,
+	activationCodeNotifier AuthNotifier,
 	passwordHasher PasswordHasher,
 	refreshTokenStorage RefreshTokenStorage,
 	twoFactorCodeStorage TwoFactorCodeStorage,
 	twoFactorCodeNotifier TwoFactorCodeNotifier,
+	recoveryCodeStorage RecoveryCodeStorage,
 ) Service {
 	return Service{
 		userStorage:            userStorage,
@@ -38,6 +40,7 @@ func NewService(
 		refreshTokenStorage:    refreshTokenStorage,
 		twoFactorCodeStorage:   twoFactorCodeStorage,
 		twoFactorCodeNotifier:  twoFactorCodeNotifier,
+		recoveryCodeStorage:    recoveryCodeStorage,
 	}
 }
 
@@ -57,6 +60,10 @@ const (
 	twoFactorCodeCharset = "0123456789"
 	twoFactorCodeSize    = 6
 	TwoFactorCodeTtl     = time.Minute * 5
+
+	recoveryCodeCharset = "ij"
+	recoveryCodeSize    = 16
+	recoveryCodeTtl     = time.Minute * 5
 )
 
 func (s *Service) SignUp(ctx context.Context, login, password, email string) error {
@@ -120,4 +127,47 @@ func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string
 	// 5. Формируем auth.Claims
 
 	return SignInResult{}, nil
+}
+
+func (s *Service) Recovery(ctx context.Context, login, email string) error {
+	userId, err := s.userStorage.UserIdByLoginAndEmail(ctx, login, email)
+	if err != nil {
+		return err
+	}
+
+	recoveryCode, err := s.randomGenerator.GenerateString(ctx, recoveryCodeCharset, recoveryCodeSize)
+	if err != nil {
+		return err
+	}
+
+	err = s.recoveryCodeStorage.SaveRecoveryCode(ctx, recoveryCode, userId, recoveryCodeTtl)
+	if err != nil {
+		return err
+	}
+
+	err = s.activationCodeNotifier.SendRecoveryCode(ctx, email, recoveryCode)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) RecoveryCode(ctx context.Context, code, password string) error {
+	userId, err := s.recoveryCodeStorage.VerifyRecoveryCode(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := s.passwordHasher.HashPassword(ctx, []byte(password), hashCost)
+	if err != nil {
+		return err
+	}
+
+	err = s.userStorage.UpdatePassword(ctx, userId, hashedPassword)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

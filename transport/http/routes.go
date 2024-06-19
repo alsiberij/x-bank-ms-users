@@ -14,6 +14,8 @@ func (t *Transport) routes() http.Handler {
 	mux.HandleFunc("POST /v1/auth/verification", t.handlerActivateAccount)
 	mux.HandleFunc("POST /v1/auth/sign-in", t.handlerSignIn)
 	mux.HandleFunc("POST /v1/auth/sign-in/2fa", t.handlerSignIn2FA) // TODO Игорь. Тут обязательно нужна authMiddleware пропускающая втч и 2FA токены
+	mux.HandleFunc("POST /v1/auth/recovery", t.handlerRecovery)
+	mux.HandleFunc("POST /v1/auth/recovery/{code}", t.handlerRecoveryCode)
 
 	return mux
 }

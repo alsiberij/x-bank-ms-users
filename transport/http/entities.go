@@ -25,4 +25,13 @@ type (
 	UserDataToSignIn2FA struct {
 		Code string `json:"code"`
 	}
+
+	RecoveryRequest struct {
+		Login string `json:"login"`
+		Email string `json:"email"`
+	}
+
+	RecoveryCodeRequest struct {
+		Password string `json:"password"`
+	}
 )

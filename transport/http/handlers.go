@@ -50,3 +50,39 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	// 3. Формируем токен с помощью t.authorizer.Authorize
 	// 4. Формируем ответ (структура TokenPair).
 }
+
+func (t *Transport) handlerRecovery(w http.ResponseWriter, r *http.Request) {
+	var request RecoveryRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	err = t.service.Recovery(r.Context(), request.Login, request.Email)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (t *Transport) handlerRecoveryCode(w http.ResponseWriter, r *http.Request) {
+	var request RecoveryCodeRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	code := r.PathValue("code")
+
+	err = t.service.RecoveryCode(r.Context(), code, request.Password)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

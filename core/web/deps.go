@@ -11,6 +11,8 @@ type (
 		GetSignInDataByLogin(ctx context.Context, login string) (UserDataToSignIn, error)
 		GetSignInDataById(ctx context.Context, id int64) (UserDataToSignIn, error)
 		ActivateUser(ctx context.Context, userId int64) error
+		UserIdByLoginAndEmail(ctx context.Context, login, email string) (int64, error)
+		UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error
 	}
 
 	RandomGenerator interface {
@@ -22,8 +24,9 @@ type (
 		VerifyActivationCode(ctx context.Context, code string) (int64, error)
 	}
 
-	ActivationCodeNotifier interface {
+	AuthNotifier interface {
 		SendActivationCode(ctx context.Context, email, code string) error
+		SendRecoveryCode(ctx context.Context, email, code string) error
 	}
 
 	PasswordHasher interface {
@@ -43,5 +46,10 @@ type (
 
 	TwoFactorCodeNotifier interface {
 		Send2FaCode(ctx context.Context, telegramId int64, code string) error
+	}
+
+	RecoveryCodeStorage interface {
+		SaveRecoveryCode(ctx context.Context, code string, userId int64, ttl time.Duration) error
+		VerifyRecoveryCode(ctx context.Context, code string) (int64, error)
 	}
 )

@@ -101,6 +101,34 @@ func (s *Service) ActivateUser(_ context.Context, userId int64) error {
 	return nil
 }
 
+func (s *Service) UserIdByLoginAndEmail(_ context.Context, login, email string) (int64, error) {
+	s.userStorageMu.Lock()
+	defer s.userStorageMu.Unlock()
+
+	for id, user := range s.userStorage {
+		if user.Login == login && user.Email == email {
+			return id, nil
+		}
+	}
+
+	return 0, errors.New("user not found")
+}
+
+func (s *Service) UpdatePassword(_ context.Context, id int64, passwordHash []byte) error {
+	s.userStorageMu.Lock()
+	defer s.userStorageMu.Unlock()
+
+	user, ok := s.userStorage[id]
+	if !ok {
+		return cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
+	}
+
+	user.Password = passwordHash
+	s.userStorage[id] = user
+
+	return nil
+}
+
 func (s *Service) SaveActivationCode(_ context.Context, code string, userId int64, _ time.Duration) error {
 	s.strCodeCacheMu.Lock()
 	defer s.strCodeCacheMu.Unlock()
@@ -123,6 +151,11 @@ func (s *Service) VerifyActivationCode(_ context.Context, code string) (int64, e
 
 func (s *Service) SendActivationCode(_ context.Context, email, code string) error {
 	fmt.Printf("Письмо отправлено на %s: Ссылка на активации: https://example.com/?code=%s\n", email, code)
+	return nil
+}
+
+func (s *Service) SendRecoveryCode(_ context.Context, email, code string) error {
+	fmt.Printf("Письмо отправлено на %s: Код восстановления %s", email, code)
 	return nil
 }
 
@@ -154,11 +187,11 @@ func (s *Service) Save2FaCode(_ context.Context, code string, userId int64, _ ti
 	return nil
 }
 
-func (s *Service) Verify2FaCode(_ context.Context, token string) (int64, error) {
+func (s *Service) Verify2FaCode(_ context.Context, code string) (int64, error) {
 	s.strCodeCacheMu.RLock()
 	defer s.strCodeCacheMu.RUnlock()
 
-	userId, ok := s.strCodeCache[token]
+	userId, ok := s.strCodeCache[code]
 	if !ok {
 		return 0, cerrors.NewErrorWithUserMessage(ercodes.ActivationCodeNotFound, nil, "Код активации не найден")
 	}
@@ -169,4 +202,24 @@ func (s *Service) Verify2FaCode(_ context.Context, token string) (int64, error) 
 func (s *Service) Send2FaCode(_ context.Context, telegramId int64, code string) error {
 	fmt.Printf("Отправлено в телеграм id %d: Код %s\n", telegramId, code)
 	return nil
+}
+
+func (s *Service) SaveRecoveryCode(_ context.Context, code string, userId int64, ttl time.Duration) error {
+	s.strCodeCacheMu.Lock()
+	defer s.strCodeCacheMu.Unlock()
+
+	s.strCodeCache[code] = userId
+	return nil
+}
+
+func (s *Service) VerifyRecoveryCode(_ context.Context, code string) (int64, error) {
+	s.strCodeCacheMu.RLock()
+	defer s.strCodeCacheMu.RUnlock()
+
+	userId, ok := s.strCodeCache[code]
+	if !ok {
+		return 0, cerrors.NewErrorWithUserMessage(ercodes.ActivationCodeNotFound, nil, "Код активации не найден")
+	}
+
+	return userId, nil
 }
