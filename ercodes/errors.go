@@ -8,4 +8,6 @@ const (
 	UserNotFound
 	ActivationCodeNotFound
 	BcryptHashing
+	RandomGeneration
+	HS512Authorization
 )
