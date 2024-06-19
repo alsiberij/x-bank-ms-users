@@ -95,7 +95,7 @@ paths:
       tags:
         - Auth
       security:
-        - bearerAuth: []
+        - bearerAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -124,7 +124,7 @@ paths:
 
   /v1/auth/recovery:
     post:
-      summary: Восстановление пароля по email
+      summary: Отправка кода для восстановления пароля
       tags:
         - Auth
       requestBody:
@@ -139,6 +139,37 @@ paths:
                 email:
                   type: string
                   description: Эл. Почта
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/recovery/{code}:
+    post:
+      summary: Восстановление пароля
+      parameters:
+        - in: path
+          name: code
+          description: Код отправленный на почту
+          schema:
+            type: string
+          required: true
+      tags:
+        - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: Логин
       responses:
         '200':
           description: Ok
