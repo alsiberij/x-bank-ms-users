@@ -7,7 +7,9 @@ import (
 
 type (
 	Config struct {
-		Hs512SecretKey string `json:"hs512SecretKey"`
+		Hs512SecretKey  string `json:"hs512SecretKey"`
+		Rs256PrivateKey string `json:"rs256PrivateKey"`
+		Rs256PublicKey  string `json:"rs256PublicKey"`
 	}
 )
 
