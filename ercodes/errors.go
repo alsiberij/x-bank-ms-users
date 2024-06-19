@@ -9,4 +9,5 @@ const (
 	ActivationCodeNotFound
 	BcryptHashing
 	RandomGeneration
+	HS512Authorization
 )
