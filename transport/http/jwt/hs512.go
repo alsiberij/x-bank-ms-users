@@ -30,7 +30,7 @@ func NewHS512(secret string) (HS512, error) {
 	}, nil
 }
 
-func (R *HS512) Authorize(ctx context.Context, claims auth.Claims) ([]byte, error) {
+func (R *HS512) Authorize(_ context.Context, claims auth.Claims) ([]byte, error) {
 	mac := hmac.New(sha512.New, R.secret)
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS512","typ":"JWT"}`))
 
@@ -50,7 +50,7 @@ func (R *HS512) Authorize(ctx context.Context, claims auth.Claims) ([]byte, erro
 	return []byte(token), nil
 }
 
-func (R *HS512) VerifyAuthorization(ctx context.Context, authorization []byte) (auth.Claims, error) {
+func (R *HS512) VerifyAuthorization(_ context.Context, authorization []byte) (auth.Claims, error) {
 	data := strings.Split(string(authorization), ".")
 
 	if len(data) != 3 {

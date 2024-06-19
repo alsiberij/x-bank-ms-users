@@ -24,3 +24,9 @@ func (s *Service) HashPassword(_ context.Context, password []byte, cost int) ([]
 
 	return passwordHash, nil
 }
+
+func (s *Service) CompareHashAndPassword(ctx context.Context, password string, hashedPassword []byte) error {
+	// TODO Алёна
+	// Оберни в нашу ошибку мол неверный логин/пароль
+	panic("implement me")
+}
