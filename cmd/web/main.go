@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 	"x-bank-users/config"
 	"x-bank-users/core/web"
 	"x-bank-users/infra/hasher"
@@ -39,8 +44,18 @@ func main() {
 
 	transport := http.NewTransport(service, &jwtHs512)
 
-	// TODO Алёна.
-	// Сделать graceful shutdown. Ловим SIGINT и SIGTERM, используем метод Stop у транспорта, таймаут на остановку - 30 сек.
+	go func() {
+		interruptsCh := make(chan os.Signal, 1)
+		signal.Notify(interruptsCh, syscall.SIGINT, syscall.SIGTERM)
+		<-interruptsCh
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer shutdownCancel()
+		err = transport.Stop(shutdownCtx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	errCh := transport.Start(*addr)
 
 	log.Println(<-errCh)
