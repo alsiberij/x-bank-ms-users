@@ -45,7 +45,7 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	// TODO Игорь
 	// 1. Парсим тело запроса (структура UserDataToSignIn2FA)
-	// 2. Получаем из контекст *auth.Claims (см. свое другое TO DO)
+	// 2. Получаем из контекста *auth.Claims (см. свое другое TO DO). Ключ - t.claimsCtxKey
 	// 2. Вызываем бизнес логику
 	// 3. Формируем токен с помощью t.authorizer.Authorize
 	// 4. Формируем ответ (структура TokenPair).
