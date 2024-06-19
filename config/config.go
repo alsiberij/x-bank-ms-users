@@ -7,6 +7,7 @@ import (
 
 type (
 	Config struct {
+		Hs512SecretKey string `json:"hs512SecretKey"`
 	}
 )
 
