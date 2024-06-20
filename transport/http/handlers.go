@@ -78,7 +78,7 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, ok := r.Context().Value(t.claimsCtxKey).(auth.Claims)
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
 	if !ok {
 		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
 		return
@@ -86,7 +86,7 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 
 	code := userDataToSignIn2FA.Code
 
-	signInResult, err := t.service.SignIn2FA(r.Context(), claims, code)
+	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code)
 
 	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
 	if err != nil {

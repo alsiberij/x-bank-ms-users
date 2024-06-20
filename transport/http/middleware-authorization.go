@@ -27,12 +27,12 @@ func (t *Transport) authMiddleware(allow2Fa bool) middleware {
 				return
 			}
 
-			if allow2Fa && !claims.Is2FAToken {
+			if !allow2Fa && claims.Is2FAToken {
 				t.errorHandler.setError(w, errors.New("требуется 2FA"))
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), t.claimsCtxKey, claims)
+			ctx := context.WithValue(r.Context(), t.claimsCtxKey, &claims)
 			handlerFunc(w, r.WithContext(ctx))
 		}
 	}
