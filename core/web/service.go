@@ -159,14 +159,46 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 }
 
 func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string) (SignInResult, error) {
-	// TODO Игорь
-	// 1. Проверка 2FA кода, извлечение userId
-	// 2. Сравнение userId из claims, должны совпадать
-	// 3. Поиск юзера по id
-	// 4. Генерируем и сохраняем рефреш токен
-	// 5. Формируем auth.Claims
+	userId, err := s.twoFactorCodeStorage.Verify2FaCode(ctx, code)
+	if err != nil {
+		return SignInResult{}, err
+	}
 
-	return SignInResult{}, nil
+	if userId != claims.Sub {
+		return SignInResult{}, cerrors.NewErrorWithUserMessage(ercodes.Invalid2FACode, nil, "Неверный 2FA код")
+	}
+
+	personalData, err := s.userStorage.GetSignInDataById(ctx, userId)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	hasPersonalData := personalData.HasPersonalData
+
+	refreshToken, err := s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	err = s.refreshTokenStorage.SaveRefreshToken(ctx, refreshToken, userId, refreshTokenTtl)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	timeNow := time.Now()
+	accessClaims := auth.Claims{
+		Id:              uuid.New().String(),
+		IssuedAt:        timeNow.Unix(),
+		ExpiresAt:       timeNow.Add(claimsTtl).Unix(),
+		Sub:             userId,
+		Is2FAToken:      false,
+		HasPersonalData: hasPersonalData,
+	}
+
+	return SignInResult{
+		AccessClaims: accessClaims,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *Service) Recovery(ctx context.Context, login, email string) error {

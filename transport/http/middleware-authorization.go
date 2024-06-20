@@ -1,9 +1,39 @@
 package http
 
-// TODO Игорь
-// Написать метод возвращающий мидлвару, которая будет проверять токен (заголовок Authorization).
-// В случае успеха записывать *auth.Claims в контекст запроса. Если авторизоваться не удалось, возвращать ошибку.
+import (
+	"context"
+	"errors"
+	"net/http"
+	"strings"
+)
 
 func (t *Transport) authMiddleware(allow2Fa bool) middleware {
-	panic("implement me")
+	return func(handlerFunc http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			header := r.Header.Get("Authorization")
+			if header == "" {
+				t.errorHandler.setError(w, errors.New("отсутствует заголовок Authorization"))
+				return
+			}
+			parts := strings.Split(header, " ")
+			if len(parts) != 2 || parts[0] != "Bearer" {
+				t.errorHandler.setError(w, errors.New("неверный формат заголовка Authorization"))
+				return
+			}
+			token := parts[1]
+			claims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(token))
+			if err != nil {
+				t.errorHandler.setError(w, err)
+				return
+			}
+
+			if !allow2Fa && claims.Is2FAToken {
+				t.errorHandler.setError(w, errors.New("требуется 2FA"))
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), t.claimsCtxKey, &claims)
+			handlerFunc(w, r.WithContext(ctx))
+		}
+	}
 }

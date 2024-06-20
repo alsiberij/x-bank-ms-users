@@ -2,7 +2,9 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"x-bank-users/auth"
 )
 
 func (t *Transport) handlerSignUp(w http.ResponseWriter, r *http.Request) {
@@ -68,12 +70,42 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
-	// TODO Игорь
-	// 1. Парсим тело запроса (структура UserDataToSignIn2FA)
-	// 2. Получаем из контекста *auth.Claims (см. свое другое TO DO). Ключ - t.claimsCtxKey
-	// 2. Вызываем бизнес логику
-	// 3. Формируем токен с помощью t.authorizer.Authorize
-	// 4. Формируем ответ (структура TokenPair).
+	userDataToSignIn2FA := UserDataToSignIn2FA{}
+
+	err := json.NewDecoder(r.Body).Decode(&userDataToSignIn2FA)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	code := userDataToSignIn2FA.Code
+
+	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code)
+
+	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	signInResponse := SignInResponse{}
+
+	signInResponse.Tokens.AccessToken = string(token)
+	signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
+
+	err = json.NewEncoder(w).Encode(signInResponse)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (t *Transport) handlerRecovery(w http.ResponseWriter, r *http.Request) {

@@ -13,4 +13,5 @@ const (
 	RS256Authorization
 	AccountNotActivated
 	WrongPassword
+	Invalid2FACode
 )
