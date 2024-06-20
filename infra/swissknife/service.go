@@ -44,6 +44,7 @@ func (s *Service) CreateUser(_ context.Context, login, email string, passwordHas
 		IsActivated:     false,
 		HasPersonalData: false,
 		TelegramId:      nil,
+		CreatedAt:       time.Now(),
 	}
 
 	return s.userStorageSeq, nil
@@ -234,5 +235,22 @@ func (s *Service) ExpireAllByUserId(_ context.Context, userId int64) error {
 		}
 	}
 	fmt.Println(s.strCodeCache)
+	return nil
+}
+
+func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirationTime time.Duration) error {
+	s.userStorageMu.Lock()
+	defer s.userStorageMu.Unlock()
+
+	timeNow := time.Now()
+
+	for key, value := range s.userStorage {
+		if !value.IsActivated && value.CreatedAt.Sub(timeNow) >= expirationTime {
+			if err := s.ExpireAllByUserId(ctx, key); err != nil {
+				return err
+			}
+			delete(s.userStorage, key)
+		}
+	}
 	return nil
 }
