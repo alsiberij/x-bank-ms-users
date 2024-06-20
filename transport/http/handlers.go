@@ -48,16 +48,16 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
 	if err != nil {
 		t.errorHandler.setError(w, err)
+		return
 	}
 	signInResponse := SignInResponse{}
 
 	if signInResult.AccessClaims.Is2FAToken {
 		signInResponse.TwoFaDemand = string(token)
-		return
+	} else {
+		signInResponse.Tokens.AccessToken = string(token)
+		signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
 	}
-
-	signInResponse.Tokens.AccessToken = string(token)
-	signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
 
 	err = json.NewEncoder(w).Encode(signInResponse)
 	if err != nil {

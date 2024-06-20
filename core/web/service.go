@@ -137,11 +137,12 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 			return SignInResult{}, err
 		}
 	}
+	date := time.Now()
 
 	claims := auth.Claims{
 		Id:              uuid.New().String(),
-		IssuedAt:        time.Now().Unix(),
-		ExpiresAt:       time.Now().Add(claimsTtl).Unix(),
+		IssuedAt:        date.Unix(),
+		ExpiresAt:       date.Add(claimsTtl).Unix(),
 		Sub:             userData.Id,
 		Is2FAToken:      userData.TelegramId != nil,
 		HasPersonalData: userData.HasPersonalData,
