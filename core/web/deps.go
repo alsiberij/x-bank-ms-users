@@ -37,6 +37,7 @@ type (
 	RefreshTokenStorage interface {
 		SaveRefreshToken(ctx context.Context, token string, userId int64, ttl time.Duration) error
 		VerifyRefreshToken(ctx context.Context, token string) (int64, error)
+		ExpireAllByUserId(ctx context.Context, userId int64) error
 	}
 
 	TwoFactorCodeStorage interface {

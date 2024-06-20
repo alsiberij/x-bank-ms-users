@@ -124,12 +124,9 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 	}
 
 	var refreshToken string
-	if userData.TelegramId != nil {
-		refreshToken, err = s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
+	if userData.TelegramId == nil {
+		refreshToken, err = s.getNewToken(ctx, userData.Id)
 		if err != nil {
-			return SignInResult{}, err
-		}
-		if err = s.refreshTokenStorage.SaveRefreshToken(ctx, refreshToken, userData.Id, refreshTokenTtl); err != nil {
 			return SignInResult{}, err
 		}
 	} else {
@@ -213,4 +210,51 @@ func (s *Service) RecoveryCode(ctx context.Context, code, password string) error
 	}
 
 	return nil
+}
+
+func (s *Service) Refresh(ctx context.Context, token string) (SignInResult, error) {
+	userId, err := s.refreshTokenStorage.VerifyRefreshToken(ctx, token)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	refreshToken, err := s.getNewToken(ctx, userId)
+	if err != nil {
+		return SignInResult{}, err
+	}
+	userData, err := s.userStorage.GetSignInDataById(ctx, userId)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	date := time.Now()
+
+	claims := auth.Claims{
+		Id:              uuid.New().String(),
+		IssuedAt:        date.Unix(),
+		ExpiresAt:       date.Add(claimsTtl).Unix(),
+		Sub:             userId,
+		Is2FAToken:      userData.TelegramId != nil,
+		HasPersonalData: userData.HasPersonalData,
+	}
+
+	return SignInResult{
+		AccessClaims: claims,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func (s *Service) getNewToken(ctx context.Context, userId int64) (string, error) {
+	err := s.refreshTokenStorage.ExpireAllByUserId(ctx, userId)
+	if err != nil {
+		return "", err
+	}
+	refreshToken, err := s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
+	if err != nil {
+		return "", err
+	}
+	if err = s.refreshTokenStorage.SaveRefreshToken(ctx, refreshToken, userId, refreshTokenTtl); err != nil {
+		return "", err
+	}
+	return refreshToken, nil
 }

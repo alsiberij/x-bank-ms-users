@@ -111,3 +111,37 @@ func (t *Transport) handlerRecoveryCode(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
+	var request RefreshRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	signInResult, err := t.service.Refresh(r.Context(), request.RefreshToken)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	refreshResponse := SignInResponse{
+		Tokens: TokenPair{
+			RefreshToken: signInResult.RefreshToken,
+			AccessToken:  string(token),
+		},
+	}
+
+	err = json.NewEncoder(w).Encode(refreshResponse)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}

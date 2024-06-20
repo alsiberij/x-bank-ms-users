@@ -43,7 +43,7 @@ func (s *Service) CreateUser(_ context.Context, login, email string, passwordHas
 		Password:        passwordHash,
 		IsActivated:     false,
 		HasPersonalData: false,
-		TelegramId:      new(int64),
+		TelegramId:      nil,
 	}
 
 	return s.userStorageSeq, nil
@@ -222,4 +222,17 @@ func (s *Service) VerifyRecoveryCode(_ context.Context, code string) (int64, err
 	}
 
 	return userId, nil
+}
+
+func (s *Service) ExpireAllByUserId(_ context.Context, userId int64) error {
+	s.strCodeCacheMu.Lock()
+	defer s.strCodeCacheMu.Unlock()
+
+	for k, v := range s.strCodeCache {
+		if v == userId {
+			delete(s.strCodeCache, k)
+		}
+	}
+	fmt.Println(s.strCodeCache)
+	return nil
 }
