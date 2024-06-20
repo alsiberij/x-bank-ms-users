@@ -117,7 +117,7 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 	}
 
 	var refreshToken string
-	if userData.TelegramId == nil {
+	if *userData.TelegramId == 0 {
 		refreshToken, err = s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
 		if err != nil {
 			return SignInResult{}, err
@@ -143,7 +143,7 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 		IssuedAt:        time.Now().Unix(),
 		ExpiresAt:       time.Now().Unix() + claimsTtl.Milliseconds(),
 		Sub:             userData.Id,
-		Is2FAToken:      userData.TelegramId != nil,
+		Is2FAToken:      *userData.TelegramId != 0,
 		HasPersonalData: userData.HasPersonalData,
 	}
 
