@@ -46,6 +46,9 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+	}
 	signInResponse := SignInResponse{}
 
 	if signInResult.AccessClaims.Is2FAToken {
@@ -55,6 +58,12 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 
 	signInResponse.Tokens.AccessToken = string(token)
 	signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
+
+	err = json.NewEncoder(w).Encode(signInResponse)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {

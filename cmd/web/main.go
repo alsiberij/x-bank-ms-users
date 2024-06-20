@@ -44,19 +44,19 @@ func main() {
 
 	transport := http.NewTransport(service, &jwtHs512)
 
-	go func() {
-		interruptsCh := make(chan os.Signal, 1)
-		signal.Notify(interruptsCh, syscall.SIGINT, syscall.SIGTERM)
-		<-interruptsCh
+	errCh := transport.Start(*addr)
+	interruptsCh := make(chan os.Signal, 1)
+	signal.Notify(interruptsCh, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-errCh:
+		log.Fatal(err)
+	case <-interruptsCh:
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer shutdownCancel()
 		err = transport.Stop(shutdownCtx)
 		if err != nil {
 			log.Fatal(err)
 		}
-	}()
-
-	errCh := transport.Start(*addr)
-
-	log.Println(<-errCh)
+	}
 }

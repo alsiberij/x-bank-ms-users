@@ -4,9 +4,6 @@ import "net/http"
 
 func (t *Transport) corsHandler(allowOrigin, allowHeaders, allowMethods, exposeHeaders string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "OPTIONS" {
-			return
-		}
 		w.Header().Set("Access-Control-Allow-Origin", allowOrigin)
 		w.Header().Set("Access-Control-Allow-Headers", allowHeaders)
 		w.Header().Set("Access-Control-Allow-Methods", allowMethods)
