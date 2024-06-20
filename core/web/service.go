@@ -176,13 +176,7 @@ func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string
 		return SignInResult{}, err
 	}
 
-	var hasPersonalData *bool
-
-	if personalData.HasPersonalData {
-		*hasPersonalData = true
-	} else {
-		*hasPersonalData = false
-	}
+	hasPersonalData := personalData.HasPersonalData
 
 	refreshToken, err := s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
 	if err != nil {
@@ -201,7 +195,7 @@ func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string
 		ExpiresAt:       timeNow.Add(claimsTtl).Unix(),
 		Sub:             userId,
 		Is2FAToken:      false,
-		HasPersonalData: *hasPersonalData,
+		HasPersonalData: hasPersonalData,
 	}
 
 	return SignInResult{
