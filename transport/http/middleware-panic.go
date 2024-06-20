@@ -2,10 +2,17 @@ package http
 
 import "net/http"
 
-// TODO Игорь
-// Написать мидлвару которая будет ловить панику и отдавать на фронт ошибку с помощью setFatalError.
-// Написать проверку что panicMiddleware приводится к типу middleware
+var (
+	_ middleware = (&Transport{}).panicMiddleware
+)
 
 func (t *Transport) panicMiddleware(h http.HandlerFunc) http.HandlerFunc {
-	panic("implement me")
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				t.errorHandler.setFatalError(w, err)
+			}
+		}()
+		h(w, r)
+	}
 }
