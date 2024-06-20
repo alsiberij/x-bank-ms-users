@@ -34,4 +34,8 @@ type (
 	RecoveryCodeRequest struct {
 		Password string `json:"password"`
 	}
+
+	RefreshRequest struct {
+		RefreshToken string `json:"refreshToken"`
+	}
 )
