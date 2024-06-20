@@ -11,4 +11,6 @@ const (
 	RandomGeneration
 	HS512Authorization
 	RS256Authorization
+	AccountNotActivated
+	WrongPassword
 )

@@ -33,13 +33,38 @@ func (t *Transport) handlerActivateAccount(w http.ResponseWriter, r *http.Reques
 }
 
 func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
-	// TODO Алёна
-	// 1. Парсим тело запроса (структура UserDataToSignIn)
-	// 2. Вызываем бизнес логику
-	// 3. Формируем токен с помощью t.authorizer.Authorize
-	// 4. Формируем ответ (структура SignInResponse).
-	// 4.1. Если claims.Is2FAToken == true, то сохраняем токен в поле SignInResponse.TwoFaDemand, остальное пустое.
-	// 4.2. Иначе заполняем структуру TokenPair
+	userDataToSignIn := UserDataToSignIn{}
+	if err := json.NewDecoder(r.Body).Decode(&userDataToSignIn); err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+	signInResponse := SignInResponse{}
+
+	if signInResult.AccessClaims.Is2FAToken {
+		signInResponse.TwoFaDemand = string(token)
+	} else {
+		signInResponse.Tokens.AccessToken = string(token)
+		signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
+	}
+
+	err = json.NewEncoder(w).Encode(signInResponse)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {

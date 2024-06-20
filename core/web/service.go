@@ -2,8 +2,11 @@ package web
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"time"
 	"x-bank-users/auth"
+	"x-bank-users/cerrors"
+	"x-bank-users/ercodes"
 )
 
 type (
@@ -106,16 +109,56 @@ func (s *Service) ActivateAccount(ctx context.Context, code string) error {
 }
 
 func (s *Service) SignIn(ctx context.Context, login, password string) (SignInResult, error) {
-	// TODO Алёна
-	// 1. Поиск юзера по логину
-	// 2. Сравнение хешей паролей
-	// 3. Проверка на активацию
-	// 4. Проверка привязки телеграмма
-	// 4.1. Телеграмма нет - генерируем и сохраняем рефреш токен
-	// 4.2. Телеграмм есть - генерируем, сохраняем, отправляем 2FA код.
-	// 5. Формируем auth.Claims
+	userData, err := s.userStorage.GetSignInDataByLogin(ctx, login)
+	if err != nil {
+		return SignInResult{}, err
+	}
 
-	return SignInResult{}, nil
+	err = s.passwordHasher.CompareHashAndPassword(ctx, password, userData.PasswordHash)
+	if err != nil {
+		return SignInResult{}, err
+	}
+
+	if !userData.IsActivated {
+		return SignInResult{}, cerrors.NewErrorWithUserMessage(ercodes.AccountNotActivated, nil, "Аккаунт не активирован")
+	}
+
+	var refreshToken string
+	if userData.TelegramId != nil {
+		refreshToken, err = s.randomGenerator.GenerateString(ctx, refreshTokenCharset, refreshTokenSize)
+		if err != nil {
+			return SignInResult{}, err
+		}
+		if err = s.refreshTokenStorage.SaveRefreshToken(ctx, refreshToken, userData.Id, refreshTokenTtl); err != nil {
+			return SignInResult{}, err
+		}
+	} else {
+		twoFactorCode, err := s.randomGenerator.GenerateString(ctx, twoFactorCodeCharset, twoFactorCodeSize)
+		if err != nil {
+			return SignInResult{}, err
+		}
+		if err = s.twoFactorCodeStorage.Save2FaCode(ctx, twoFactorCode, userData.Id, TwoFactorCodeTtl); err != nil {
+			return SignInResult{}, err
+		}
+		if err = s.twoFactorCodeNotifier.Send2FaCode(ctx, *userData.TelegramId, twoFactorCode); err != nil {
+			return SignInResult{}, err
+		}
+	}
+	date := time.Now()
+
+	claims := auth.Claims{
+		Id:              uuid.New().String(),
+		IssuedAt:        date.Unix(),
+		ExpiresAt:       date.Add(claimsTtl).Unix(),
+		Sub:             userData.Id,
+		Is2FAToken:      userData.TelegramId != nil,
+		HasPersonalData: userData.HasPersonalData,
+	}
+
+	return SignInResult{
+		AccessClaims: claims,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string) (SignInResult, error) {
