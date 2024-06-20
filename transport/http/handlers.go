@@ -62,6 +62,7 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(signInResponse)
 	if err != nil {
 		t.errorHandler.setError(w, err)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
