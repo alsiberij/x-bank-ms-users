@@ -33,9 +33,13 @@ func NewService() Service {
 	}
 }
 
-func (s *Service) CreateUser(_ context.Context, login, email string, passwordHash []byte) (int64, error) {
+func (s *Service) CreateUser(ctx context.Context, login, email string, passwordHash []byte) (int64, error) {
 	s.userStorageMu.Lock()
 	defer s.userStorageMu.Unlock()
+
+	if !s.isSignUpDataValid(ctx, login, email) {
+		return 0, cerrors.NewErrorWithUserMessage(ercodes.InvalidEmailOrLogin, nil, "Логин или почта уже заняты")
+	}
 
 	s.userStorageSeq++
 	user := storedUser{
@@ -57,6 +61,15 @@ func (s *Service) CreateUser(_ context.Context, login, email string, passwordHas
 	s.userStorage[s.userStorageSeq] = user
 
 	return s.userStorageSeq, nil
+}
+
+func (s *Service) isSignUpDataValid(_ context.Context, login, email string) bool {
+	for _, user := range s.userStorage {
+		if user.Login == login || user.Email == email {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *Service) GetSignInDataByLogin(_ context.Context, login string) (web.UserDataToSignIn, error) {
