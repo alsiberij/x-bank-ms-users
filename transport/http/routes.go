@@ -37,7 +37,7 @@ func (t *Transport) routes() http.Handler {
 	mux.HandleFunc("POST /v1/auth/recovery/{code}", defaultMiddlewareGroup.Apply(t.handlerRecoveryCode))
 	mux.HandleFunc("POST /v1/auth/refresh", defaultMiddlewareGroup.Apply(t.handlerRefresh))
 	mux.HandleFunc("POST /v1/auth/telegram", telegramMiddlewareGroup.Apply(t.handlerTelegramBind))
-	mux.HandleFunc("DELETE /v1/auth/telegram", signIn2FaMiddlewareGroup.Apply(t.handlerTelegramDelete))
+	mux.HandleFunc("DELETE /v1/auth/telegram", telegramMiddlewareGroup.Apply(t.handlerTelegramDelete))
 
 	return mux
 }
