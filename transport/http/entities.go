@@ -39,6 +39,16 @@ type (
 		RefreshToken string `json:"refreshToken"`
 	}
 
+	TelegramBindRequest struct {
+		TelegramId int64  `json:"id"`
+		FirstName  string `json:"firstname"`
+		LastName   string `json:"lastname"`
+		Username   string `json:"username"`
+		PhotoUrl   string `json:"photoUrl"`
+		AuthDate   int64  `json:"authDate"`
+		Hash       string `json:"hash"`
+  }
+  
 	UserPersonalData struct {
 		PhoneNumber   string  `json:"phoneNumber"`
 		FirstName     string  `json:"firstName"`

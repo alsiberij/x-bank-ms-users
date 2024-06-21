@@ -294,3 +294,18 @@ func (s *Service) DeleteUsersWithExpiredActivation(_ context.Context, expiration
 	}
 	return nil
 }
+
+func (s *Service) UpdateTelegramId(_ context.Context, telegramId *int64, userId int64) error {
+	s.userStorageMu.Lock()
+	defer s.userStorageMu.Unlock()
+
+	user, ok := s.userStorage[userId]
+	if !ok {
+		return cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
+	}
+
+	user.TelegramId = telegramId
+	s.userStorage[userId] = user
+
+	return nil
+}

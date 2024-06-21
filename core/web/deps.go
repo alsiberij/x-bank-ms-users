@@ -13,6 +13,7 @@ type (
 		ActivateUser(ctx context.Context, userId int64) error
 		UserIdByLoginAndEmail(ctx context.Context, login, email string) (int64, error)
 		UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error
+		UpdateTelegramId(ctx context.Context, telegramId *int64, userId int64) error
 		GetUserDataById(ctx context.Context, userId int64) (*UserPersonalData, error)
 	}
 

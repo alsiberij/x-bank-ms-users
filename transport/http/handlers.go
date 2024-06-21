@@ -227,3 +227,40 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) {
+	var request TelegramBindRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	if err = t.service.BindTelegram(r.Context(), &request.TelegramId, claims.Sub); err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (t *Transport) handlerTelegramDelete(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	if err := t.service.DeleteTelegram(r.Context(), claims.Sub); err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
