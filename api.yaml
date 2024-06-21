@@ -6,6 +6,29 @@ info:
 servers:
   - url: 'https://x-bank.alsiberij.com/ms-users/'
 paths:
+  /v1/personal-data:
+    get:
+      summary: Получить персональные данные
+      tags:
+        - Personal data
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  personalData:
+                    $ref: '#/components/schemas/PersonalDataResponse'
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /v1/auth/sign-up:
     post:
       summary: Регистрация пользователя в системе
@@ -252,3 +275,39 @@ components:
           description: Токен для вызова запроса проверки второго фактора
         tokens:
           $ref: '#/components/schemas/TokenPair'
+
+    PersonalDataResponse:
+      type: object
+      nullable: true
+      properties:
+        phoneNumber:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        fathersName:
+          type: string
+          nullable: true
+          example: null
+        dateOfBirth:
+          type: string
+        passportId:
+          type: string
+        address:
+          type: string
+        gender:
+          type: string
+        liveInCountry:
+          type: string
+      required:
+        - phoneNumber
+        - firstName
+        - lastName
+        - fathersName
+        - dateOfBirth
+        - passportId
+        - address
+        - gender
+        - liveInCountry
+      example: null
