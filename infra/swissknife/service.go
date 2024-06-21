@@ -245,10 +245,7 @@ func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirati
 	timeNow := time.Now()
 
 	for key, value := range s.userStorage {
-		if !value.IsActivated && value.CreatedAt.Sub(timeNow) >= expirationTime {
-			if err := s.ExpireAllByUserId(ctx, key); err != nil {
-				return err
-			}
+		if !value.IsActivated && timeNow.Sub(value.CreatedAt) >= expirationTime {
 			delete(s.userStorage, key)
 		}
 	}
