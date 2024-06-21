@@ -1,5 +1,7 @@
 package swissknife
 
+import "time"
+
 type (
 	storedUser struct {
 		Login           string
@@ -8,5 +10,6 @@ type (
 		IsActivated     bool
 		HasPersonalData bool
 		TelegramId      *int64
+		CreatedAt       time.Time
 	}
 )
