@@ -290,3 +290,7 @@ func (s *Service) getNewToken(ctx context.Context, userId int64) (string, error)
 	}
 	return refreshToken, nil
 }
+
+func (s *Service) GetUserData(ctx context.Context, userId int64) (*UserPersonalData, error) {
+	return s.userStorage.GetUserDataById(ctx, userId)
+}

@@ -18,6 +18,11 @@ func (t *Transport) routes() http.Handler {
 		corsMiddleware,
 		t.authMiddleware(true),
 	}
+	userMiddlewareGroup := middlewareGroup{
+		t.panicMiddleware,
+		corsMiddleware,
+		t.authMiddleware(false),
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", defaultMiddlewareGroup.Apply(t.handlerNotFound))
@@ -30,6 +35,6 @@ func (t *Transport) routes() http.Handler {
 	mux.HandleFunc("POST /v1/auth/recovery", defaultMiddlewareGroup.Apply(t.handlerRecovery))
 	mux.HandleFunc("POST /v1/auth/recovery/{code}", defaultMiddlewareGroup.Apply(t.handlerRecoveryCode))
 	mux.HandleFunc("POST /v1/auth/refresh", defaultMiddlewareGroup.Apply(t.handlerRefresh))
-
+	mux.HandleFunc("GET /v1/personal-data", userMiddlewareGroup.Apply(t.handlerGetUserData))
 	return mux
 }
