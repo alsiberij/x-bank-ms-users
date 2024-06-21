@@ -33,7 +33,11 @@ func main() {
 	knife := swissknife.NewService()
 	passwordHasher := hasher.NewService()
 
-	jwtHs512, err := jwt.NewHS512(conf.Hs512SecretKey)
+	//jwtHs512, err := jwt.NewHS512(conf.Hs512SecretKey)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	jwtRs256, err := jwt.NewRS256(conf.Rs256PrivateKey, conf.Rs256PublicKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +46,7 @@ func main() {
 
 	service := web.NewService(&knife, &randomGenerator, &knife, &knife, &passwordHasher, &knife, &knife, &knife, &knife)
 
-	transport := http.NewTransport(service, &jwtHs512)
+	transport := http.NewTransport(service, &jwtRs256)
 
 	errCh := transport.Start(*addr)
 	interruptsCh := make(chan os.Signal, 1)

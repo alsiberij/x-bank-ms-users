@@ -5,19 +5,28 @@ import (
 )
 
 func (t *Transport) routes() http.Handler {
-	// TODO Алёна, Игорь. Пример использования мидлвары. Потом сделаем красивее. Плюс побегайте дебагером и разберитесь что кого возвращает и вызывает.
-	// mux.HandleFunc("POST /v1/test", t.corsMiddleware(t.corsHandler("", "", "", ""))(t.handlerActivateAccount))
+	corsMiddleware := t.corsMiddleware(t.corsHandler("*", "*", "*", ""))
+
+	defaultGroup := middlewareGroup{
+		t.panicMiddleware,
+		corsMiddleware,
+	}
+
+	signIn2FaMiddleware := middlewareGroup{
+		t.panicMiddleware,
+		corsMiddleware,
+		t.authMiddleware(true),
+	}
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /v1/auth/sign-up", t.handlerSignUp)
-	mux.HandleFunc("POST /v1/auth/verification", t.handlerActivateAccount)
-	mux.HandleFunc("POST /v1/auth/sign-in", t.handlerSignIn)
-	mux.HandleFunc("POST /v1/auth/sign-in/2fa", t.authMiddleware(true)(t.handlerSignIn2FA))
-	mux.HandleFunc("POST /v1/auth/recovery", t.handlerRecovery)
-	mux.HandleFunc("POST /v1/auth/recovery/{code}", t.handlerRecoveryCode)
-	mux.HandleFunc("POST /v1/auth/refresh", t.handlerRefresh)
-	//mux.HandleFunc("POST /v1/auth/refresh", t.corsMiddleware(t.corsHandler("", "", "POST, GET", ""))(t.handlerRefresh))
+	mux.HandleFunc("POST /v1/auth/sign-up", defaultGroup.Apply(t.handlerSignUp))
+	mux.HandleFunc("POST /v1/auth/verification", defaultGroup.Apply(t.handlerActivateAccount))
+	mux.HandleFunc("POST /v1/auth/sign-in", defaultGroup.Apply(t.handlerSignIn))
+	mux.HandleFunc("POST /v1/auth/sign-in/2fa", signIn2FaMiddleware.Apply(t.handlerSignIn2FA))
+	mux.HandleFunc("POST /v1/auth/recovery", defaultGroup.Apply(t.handlerRecovery))
+	mux.HandleFunc("POST /v1/auth/recovery/{code}", defaultGroup.Apply(t.handlerRecoveryCode))
+	mux.HandleFunc("POST /v1/auth/refresh", defaultGroup.Apply(t.handlerRefresh))
 
 	return mux
 }

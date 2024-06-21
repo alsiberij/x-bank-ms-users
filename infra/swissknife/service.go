@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 	"x-bank-users/cerrors"
@@ -37,7 +38,7 @@ func (s *Service) CreateUser(_ context.Context, login, email string, passwordHas
 	defer s.userStorageMu.Unlock()
 
 	s.userStorageSeq++
-	s.userStorage[s.userStorageSeq] = storedUser{
+	user := storedUser{
 		Login:           login,
 		Email:           email,
 		Password:        passwordHash,
@@ -46,6 +47,14 @@ func (s *Service) CreateUser(_ context.Context, login, email string, passwordHas
 		TelegramId:      nil,
 		CreatedAt:       time.Now(),
 	}
+	if strings.HasPrefix(login, "2fa") {
+		user.TelegramId = new(int64)
+	}
+	if strings.HasSuffix(login, "pd") {
+		user.HasPersonalData = true
+	}
+
+	s.userStorage[s.userStorageSeq] = user
 
 	return s.userStorageSeq, nil
 }
@@ -234,7 +243,6 @@ func (s *Service) ExpireAllByUserId(_ context.Context, userId int64) error {
 			delete(s.strCodeCache, k)
 		}
 	}
-	fmt.Println(s.strCodeCache)
 	return nil
 }
 

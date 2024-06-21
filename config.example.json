@@ -1,2 +1,5 @@
 {
+  "hs512SecretKey": "",
+  "rs256PrivateKey": "rsaprivate.pem",
+  "rs256PublicKey": "rsapublic.pem"
 }

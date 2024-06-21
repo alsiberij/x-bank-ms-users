@@ -61,12 +61,12 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 		signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
 	}
 
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(signInResponse)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +87,10 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	code := userDataToSignIn2FA.Code
 
 	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
 
 	token, err := t.authorizer.Authorize(r.Context(), signInResult.AccessClaims)
 	if err != nil {
@@ -99,13 +103,12 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	signInResponse.Tokens.AccessToken = string(token)
 	signInResponse.Tokens.RefreshToken = signInResult.RefreshToken
 
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(signInResponse)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (t *Transport) handlerRecovery(w http.ResponseWriter, r *http.Request) {
@@ -170,10 +173,10 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
+	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(refreshResponse)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
