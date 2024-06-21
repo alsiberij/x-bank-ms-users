@@ -7,6 +7,10 @@ import (
 	"x-bank-users/auth"
 )
 
+func (t *Transport) handlerNotFound(w http.ResponseWriter, _ *http.Request) {
+	t.errorHandler.setNotFoundError(w)
+}
+
 func (t *Transport) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 	userData := UserDataToSignUp{}
 

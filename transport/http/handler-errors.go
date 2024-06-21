@@ -67,6 +67,18 @@ func (h *errorHandler) setMethodNotAllowedError(w http.ResponseWriter) {
 	}, http.StatusMethodNotAllowed)
 }
 
+func (h *errorHandler) setNotFoundError(w http.ResponseWriter) {
+	h.setTransportError(w, TransportError{
+		UserMessage: "Не найдено",
+	}, http.StatusNotFound)
+}
+
+func (h *errorHandler) setForbidden(w http.ResponseWriter) {
+	h.setTransportError(w, TransportError{
+		UserMessage: "Доступ запрещен",
+	}, http.StatusForbidden)
+}
+
 func (h *errorHandler) setFatalError(w http.ResponseWriter, v interface{}) {
 	var devMessage string
 
