@@ -192,17 +192,18 @@ func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) 
 		t.errorHandler.setBadRequestError(w, err)
 		return
 	}
-	accessToken := r.Header.Get("accessToken")
-	if accessToken == "" {
-		t.errorHandler.setUnauthorizedError(w, nil)
+
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
 	}
-	authClaims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(accessToken))
-	if err != nil {
-		t.errorHandler.setUnauthorizedError(w, err)
+	if claims.Is2FAToken {
+		t.errorHandler.setError(w, errors.New("телеграм уже привязан"))
 		return
 	}
 
-	if err = t.service.BindTelegram(r.Context(), &request.TelegramId, authClaims.Sub); err != nil {
+	if err = t.service.BindTelegram(r.Context(), &request.TelegramId, claims.Sub); err != nil {
 		t.errorHandler.setError(w, err)
 		return
 	}
@@ -211,17 +212,13 @@ func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) 
 }
 
 func (t *Transport) handlerTelegramDelete(w http.ResponseWriter, r *http.Request) {
-	accessToken := r.Header.Get("accessToken")
-	if accessToken == "" {
-		t.errorHandler.setUnauthorizedError(w, nil)
-	}
-	authClaims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(accessToken))
-	if err != nil {
-		t.errorHandler.setUnauthorizedError(w, err)
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
 		return
 	}
 
-	if err = t.service.DeleteTelegram(r.Context(), authClaims.Sub); err != nil {
+	if err := t.service.DeleteTelegram(r.Context(), claims.Sub); err != nil {
 		t.errorHandler.setError(w, err)
 		return
 	}
