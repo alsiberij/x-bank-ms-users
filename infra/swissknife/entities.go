@@ -11,7 +11,7 @@ type (
 		Email           string
 		Password        []byte
 		IsActivated     bool
-		HasPersonalData *web.UserData
+		HasPersonalData *web.UserPersonalData
 		TelegramId      *int64
 		CreatedAt       time.Time
 	}

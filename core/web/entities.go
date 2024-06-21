@@ -1,6 +1,9 @@
 package web
 
-import "x-bank-users/auth"
+import (
+	"time"
+	"x-bank-users/auth"
+)
 
 type (
 	UserDataToSignIn struct {
@@ -16,13 +19,13 @@ type (
 		RefreshToken string
 	}
 
-	UserData struct {
+	UserPersonalData struct {
 		Id            int64
 		PhoneNumber   string
 		FirstName     string
 		LastName      string
 		FathersName   string
-		DateOfBirth   string
+		DateOfBirth   time.Time
 		PassportId    string
 		Address       string
 		Gender        string

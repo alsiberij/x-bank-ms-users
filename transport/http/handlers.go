@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"x-bank-users/auth"
 )
@@ -187,26 +186,41 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
+	var userData UserPersonalData
 	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
-	fmt.Println(claims)
 	if !ok {
 		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
 		return
 	}
+
 	userId := claims.Sub
 
 	data, err := t.service.GetUserData(r.Context(), userId)
 
 	if err != nil {
-		fmt.Println(err)
 		t.errorHandler.setError(w, err)
 		return
 	}
 
+	if data == nil {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	userData = UserPersonalData{
+		PhoneNumber:   data.PhoneNumber,
+		FirstName:     data.FirstName,
+		LastName:      data.LastName,
+		FathersName:   data.FathersName,
+		DateOfBirth:   data.DateOfBirth.Format("2024-06-21"),
+		PassportId:    data.PassportId,
+		Address:       data.Address,
+		Gender:        data.Gender,
+		LiveInCountry: data.LiveInCountry,
+	}
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(data)
+	err = json.NewEncoder(w).Encode(userData)
 	if err != nil {
-		fmt.Println(err)
 		t.errorHandler.setError(w, err)
 		return
 	}

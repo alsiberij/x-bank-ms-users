@@ -12,7 +12,6 @@ import (
 type (
 	Service struct {
 		userStorage            UserStorage
-		userDataStorage        UserDataStorage
 		randomGenerator        RandomGenerator
 		activationCodeCache    ActivationCodeStorage
 		activationCodeNotifier AuthNotifier
@@ -26,7 +25,6 @@ type (
 
 func NewService(
 	userStorage UserStorage,
-	userDataStorage UserDataStorage,
 	randomGenerator RandomGenerator,
 	activationCodeCache ActivationCodeStorage,
 	activationCodeNotifier AuthNotifier,
@@ -38,7 +36,6 @@ func NewService(
 ) Service {
 	return Service{
 		userStorage:            userStorage,
-		userDataStorage:        userDataStorage,
 		randomGenerator:        randomGenerator,
 		activationCodeCache:    activationCodeCache,
 		activationCodeNotifier: activationCodeNotifier,
@@ -294,6 +291,6 @@ func (s *Service) getNewToken(ctx context.Context, userId int64) (string, error)
 	return refreshToken, nil
 }
 
-func (s *Service) GetUserData(ctx context.Context, userId int64) (UserData, error) {
-	return s.userDataStorage.GetUserDataById(ctx, userId)
+func (s *Service) GetUserData(ctx context.Context, userId int64) (*UserPersonalData, error) {
+	return s.userStorage.GetUserDataById(ctx, userId)
 }

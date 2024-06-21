@@ -13,10 +13,7 @@ type (
 		ActivateUser(ctx context.Context, userId int64) error
 		UserIdByLoginAndEmail(ctx context.Context, login, email string) (int64, error)
 		UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error
-	}
-
-	UserDataStorage interface {
-		GetUserDataById(ctx context.Context, userId int64) (UserData, error)
+		GetUserDataById(ctx context.Context, userId int64) (*UserPersonalData, error)
 	}
 
 	RandomGenerator interface {

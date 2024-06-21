@@ -55,12 +55,12 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 		user.TelegramId = new(int64)
 	}
 	if strings.HasSuffix(login, "pd") {
-		user.HasPersonalData = &web.UserData{
+		user.HasPersonalData = &web.UserPersonalData{
 			PhoneNumber:   "+1234567890",
 			FirstName:     "Имя1",
 			LastName:      "Фамилия2",
 			FathersName:   "Отчество3",
-			DateOfBirth:   "29.02.2004",
+			DateOfBirth:   time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
 			PassportId:    "1234 567890",
 			Address:       "г. Минск, ул. Улица, д. 1",
 			LiveInCountry: "Беларусь",
@@ -161,15 +161,15 @@ func (s *Service) UpdatePassword(_ context.Context, id int64, passwordHash []byt
 	return nil
 }
 
-func (s *Service) GetUserDataById(_ context.Context, userId int64) (web.UserData, error) {
+func (s *Service) GetUserDataById(_ context.Context, userId int64) (*web.UserPersonalData, error) {
 	user, ok := s.userStorage[userId]
 	if !ok {
-		return web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
+		return nil, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
 	}
 	if user.HasPersonalData == nil {
-		return web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNoPersonalData, nil, "У пользователя нет персональных данных")
+		return nil, nil
 	}
-	return *user.HasPersonalData, nil
+	return user.HasPersonalData, nil
 }
 
 func (s *Service) SaveActivationCode(_ context.Context, code string, userId int64, _ time.Duration) error {
