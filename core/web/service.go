@@ -298,3 +298,7 @@ func (s *Service) BindTelegram(ctx context.Context, telegramId *int64, userId in
 func (s *Service) DeleteTelegram(ctx context.Context, userId int64) error {
 	return s.userStorage.UpdateTelegramId(ctx, nil, userId)
 }
+
+func (s *Service) GetUserData(ctx context.Context, userId int64) (*UserPersonalData, error) {
+	return s.userStorage.GetUserDataById(ctx, userId)
+}
