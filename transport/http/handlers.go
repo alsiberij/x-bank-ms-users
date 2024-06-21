@@ -202,24 +202,27 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if data == nil {
-		w.WriteHeader(http.StatusOK)
-		return
-	}
+	response := struct {
+		PersonalData *UserPersonalData `json:"personalData"`
+	}{nil}
 
-	userData = UserPersonalData{
-		PhoneNumber:   data.PhoneNumber,
-		FirstName:     data.FirstName,
-		LastName:      data.LastName,
-		FathersName:   data.FathersName,
-		DateOfBirth:   data.DateOfBirth.Format("2024-06-21"),
-		PassportId:    data.PassportId,
-		Address:       data.Address,
-		Gender:        data.Gender,
-		LiveInCountry: data.LiveInCountry,
+	if data != nil {
+		userData = UserPersonalData{
+			PhoneNumber:   data.PhoneNumber,
+			FirstName:     data.FirstName,
+			LastName:      data.LastName,
+			FathersName:   data.FathersName,
+			DateOfBirth:   data.DateOfBirth.Format("2006-01-02"),
+			PassportId:    data.PassportId,
+			Address:       data.Address,
+			Gender:        data.Gender,
+			LiveInCountry: data.LiveInCountry,
+		}
+
+		response.PersonalData = &userData
 	}
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(userData)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return

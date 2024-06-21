@@ -24,7 +24,7 @@ type (
 		PhoneNumber   string
 		FirstName     string
 		LastName      string
-		FathersName   string
+		FathersName   *string
 		DateOfBirth   time.Time
 		PassportId    string
 		Address       string

@@ -55,18 +55,20 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 		user.TelegramId = new(int64)
 	}
 	if strings.HasSuffix(login, "pd") {
+
+		fathersName := "Отчество3"
+
 		user.HasPersonalData = &web.UserPersonalData{
 			PhoneNumber:   "+1234567890",
 			FirstName:     "Имя1",
 			LastName:      "Фамилия2",
-			FathersName:   "Отчество3",
+			FathersName:   &fathersName,
 			DateOfBirth:   time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
 			PassportId:    "1234 567890",
 			Address:       "г. Минск, ул. Улица, д. 1",
 			LiveInCountry: "Беларусь",
 		}
 	}
-
 	s.userStorage[s.userStorageSeq] = user
 
 	return s.userStorageSeq, nil
