@@ -73,10 +73,10 @@ func (h *errorHandler) setNotFoundError(w http.ResponseWriter) {
 	}, http.StatusNotFound)
 }
 
-func (h *errorHandler) setForbidden(w http.ResponseWriter) {
+func (h *errorHandler) setUnauthorizedError(w http.ResponseWriter, err error) {
 	h.setTransportError(w, TransportError{
-		UserMessage: "Доступ запрещен",
-	}, http.StatusForbidden)
+		DevMessage: errorMessage(err), UserMessage: "Не авторизован",
+	}, http.StatusUnauthorized)
 }
 
 func (h *errorHandler) setFatalError(w http.ResponseWriter, v interface{}) {

@@ -165,7 +165,7 @@ func (s *Service) SendActivationCode(_ context.Context, email, code string) erro
 }
 
 func (s *Service) SendRecoveryCode(_ context.Context, email, code string) error {
-	fmt.Printf("Письмо отправлено на %s: Код восстановления %s", email, code)
+	fmt.Printf("Письмо отправлено на %s: Код восстановления %s\n", email, code)
 	return nil
 }
 
@@ -246,7 +246,7 @@ func (s *Service) ExpireAllByUserId(_ context.Context, userId int64) error {
 	return nil
 }
 
-func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirationTime time.Duration) error {
+func (s *Service) DeleteUsersWithExpiredActivation(_ context.Context, expirationTime time.Duration) error {
 	s.userStorageMu.Lock()
 	defer s.userStorageMu.Unlock()
 

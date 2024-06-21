@@ -12,23 +12,23 @@ func (t *Transport) authMiddleware(allow2Fa bool) middleware {
 		return func(w http.ResponseWriter, r *http.Request) {
 			header := r.Header.Get("Authorization")
 			if header == "" {
-				t.errorHandler.setError(w, errors.New("отсутствует заголовок Authorization"))
+				t.errorHandler.setUnauthorizedError(w, errors.New("отсутствует заголовок Authorization"))
 				return
 			}
 			parts := strings.Split(header, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				t.errorHandler.setError(w, errors.New("неверный формат заголовка Authorization"))
+				t.errorHandler.setUnauthorizedError(w, errors.New("неверный формат заголовка Authorization"))
 				return
 			}
 			token := parts[1]
 			claims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(token))
 			if err != nil {
-				t.errorHandler.setError(w, err)
+				t.errorHandler.setUnauthorizedError(w, err)
 				return
 			}
 
 			if !allow2Fa && claims.Is2FAToken {
-				t.errorHandler.setError(w, errors.New("требуется 2FA"))
+				t.errorHandler.setUnauthorizedError(w, errors.New("требуется 2FA"))
 				return
 			}
 
