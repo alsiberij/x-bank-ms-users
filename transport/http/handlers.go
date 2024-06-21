@@ -187,6 +187,7 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 	var userData UserPersonalData
+	var response UserPersonalDataResponse
 	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
 	if !ok {
 		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
@@ -202,10 +203,6 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := struct {
-		PersonalData *UserPersonalData `json:"personalData"`
-	}{nil}
-
 	if data != nil {
 		userData = UserPersonalData{
 			PhoneNumber:   data.PhoneNumber,
@@ -220,6 +217,8 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.PersonalData = &userData
+	} else {
+		response.PersonalData = nil
 	}
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(response)

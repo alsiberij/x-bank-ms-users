@@ -50,4 +50,8 @@ type (
 		Gender        string  `json:"gender"`
 		LiveInCountry string  `json:"liveInCountry"`
 	}
+
+	UserPersonalDataResponse struct {
+		PersonalData *UserPersonalData `json:"personalData"`
+	}
 )
