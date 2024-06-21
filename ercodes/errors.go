@@ -14,4 +14,5 @@ const (
 	AccountNotActivated
 	WrongPassword
 	Invalid2FACode
+	InvalidEmailOrLogin
 )
