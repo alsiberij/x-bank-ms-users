@@ -16,4 +16,5 @@ const (
 	Invalid2FACode
 	InvalidEmailOrLogin
 	GmailSendError
+	UserNoPersonalData
 )
