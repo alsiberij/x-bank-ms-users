@@ -198,10 +198,6 @@ func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) 
 		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
 		return
 	}
-	if claims.Is2FAToken {
-		t.errorHandler.setError(w, errors.New("телеграм уже привязан"))
-		return
-	}
 
 	if err = t.service.BindTelegram(r.Context(), &request.TelegramId, claims.Sub); err != nil {
 		t.errorHandler.setError(w, err)
