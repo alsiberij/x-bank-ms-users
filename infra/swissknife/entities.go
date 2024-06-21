@@ -1,6 +1,9 @@
 package swissknife
 
-import "time"
+import (
+	"time"
+	"x-bank-users/core/web"
+)
 
 type (
 	storedUser struct {
@@ -8,7 +11,7 @@ type (
 		Email           string
 		Password        []byte
 		IsActivated     bool
-		HasPersonalData bool
+		HasPersonalData *web.UserData
 		TelegramId      *int64
 		CreatedAt       time.Time
 	}

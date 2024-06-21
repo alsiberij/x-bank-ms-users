@@ -15,6 +15,10 @@ type (
 		UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error
 	}
 
+	UserDataStorage interface {
+		GetUserDataById(ctx context.Context, userId int64) (UserData, error)
+	}
+
 	RandomGenerator interface {
 		GenerateString(ctx context.Context, set string, size int) (string, error)
 	}

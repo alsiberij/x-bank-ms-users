@@ -44,7 +44,7 @@ func main() {
 
 	randomGenerator := random.NewService()
 
-	service := web.NewService(&knife, &randomGenerator, &knife, &knife, &passwordHasher, &knife, &knife, &knife, &knife)
+	service := web.NewService(&knife, &knife, &randomGenerator, &knife, &knife, &passwordHasher, &knife, &knife, &knife, &knife)
 
 	transport := http.NewTransport(service, &jwtRs256)
 

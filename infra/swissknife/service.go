@@ -47,7 +47,7 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 		Email:           email,
 		Password:        passwordHash,
 		IsActivated:     false,
-		HasPersonalData: false,
+		HasPersonalData: nil,
 		TelegramId:      nil,
 		CreatedAt:       time.Now(),
 	}
@@ -55,7 +55,16 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 		user.TelegramId = new(int64)
 	}
 	if strings.HasSuffix(login, "pd") {
-		user.HasPersonalData = true
+		user.HasPersonalData = &web.UserData{
+			PhoneNumber:   "+1234567890",
+			FirstName:     "Имя1",
+			LastName:      "Фамилия2",
+			FathersName:   "Отчество3",
+			DateOfBirth:   "29.02.2004",
+			PassportId:    "1234 567890",
+			Address:       "г. Минск, ул. Улица, д. 1",
+			LiveInCountry: "Беларусь",
+		}
 	}
 
 	s.userStorage[s.userStorageSeq] = user
@@ -83,7 +92,7 @@ func (s *Service) GetSignInDataByLogin(_ context.Context, login string) (web.Use
 				PasswordHash:    user.Password,
 				TelegramId:      user.TelegramId,
 				IsActivated:     user.IsActivated,
-				HasPersonalData: user.HasPersonalData,
+				HasPersonalData: user.HasPersonalData != nil,
 			}, nil
 		}
 	}
@@ -105,7 +114,7 @@ func (s *Service) GetSignInDataById(_ context.Context, id int64) (web.UserDataTo
 		PasswordHash:    user.Password,
 		TelegramId:      user.TelegramId,
 		IsActivated:     user.IsActivated,
-		HasPersonalData: user.HasPersonalData,
+		HasPersonalData: user.HasPersonalData != nil,
 	}, nil
 }
 
@@ -150,6 +159,17 @@ func (s *Service) UpdatePassword(_ context.Context, id int64, passwordHash []byt
 	s.userStorage[id] = user
 
 	return nil
+}
+
+func (s *Service) GetUserDataById(_ context.Context, userId int64) (web.UserData, error) {
+	user, ok := s.userStorage[userId]
+	if !ok {
+		return web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
+	}
+	if user.HasPersonalData == nil {
+		return web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNoPersonalData, nil, "У пользователя нет персональных данных")
+	}
+	return *user.HasPersonalData, nil
 }
 
 func (s *Service) SaveActivationCode(_ context.Context, code string, userId int64, _ time.Duration) error {
