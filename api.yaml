@@ -196,7 +196,7 @@ paths:
                   description: Рефреш токен
       responses:
         '200':
-          description: Created
+          description: Ok
           content:
             application/json:
               schema:
@@ -204,6 +204,39 @@ paths:
                 properties:
                   tokens:
                     $ref: '#/components/schemas/TokenPair'
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/auth/telegram:
+    post:
+      summary: Привязка телеграмма к пользователю
+      tags:
+        - Telegram
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkTelegramRequest'
+      responses:
+        '200':
+          description: Ok
+        '400':
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Отвязка телеграмма от пользователя
+      tags:
+        - Telegram
+      responses:
+        '204':
+          description: No content
         '400':
           description: Error
           content:
@@ -252,3 +285,29 @@ components:
           description: Токен для вызова запроса проверки второго фактора
         tokens:
           $ref: '#/components/schemas/TokenPair'
+
+    LinkTelegramRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstname:
+          type: string
+        lastname:
+          type: string
+        username:
+          type: string
+        photoUrl:
+          type: string
+        authDate:
+          type: integer
+        hash:
+          type: string
+      required:
+        - id
+        - firstname
+        - lastname
+        - username
+        - photoUrl
+        - authDate
+        - hash
