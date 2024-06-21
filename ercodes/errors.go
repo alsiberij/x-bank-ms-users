@@ -15,4 +15,5 @@ const (
 	WrongPassword
 	Invalid2FACode
 	InvalidEmailOrLogin
+	GmailSendError
 )

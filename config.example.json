@@ -1,5 +1,14 @@
 {
   "hs512SecretKey": "",
   "rs256PrivateKey": "rsaprivate.pem",
-  "rs256PublicKey": "rsapublic.pem"
+  "rs256PublicKey": "rsapublic.pem",
+  "gmail": {
+    "host": "smtp.gmail.com:587",
+    "senderName": "X-BANK",
+    "senderEmail": "",
+    "login": "",
+    "password": "",
+    "urlToActivate": "https://x-bank.alsiberij.com/loading/index.html",
+    "urlToRestore": "https://x-bank.alsiberij.com/recovery/index.html"
+  }
 }

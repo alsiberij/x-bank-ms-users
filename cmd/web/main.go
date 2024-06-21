@@ -10,6 +10,7 @@ import (
 	"time"
 	"x-bank-users/config"
 	"x-bank-users/core/web"
+	"x-bank-users/infra/gmail"
 	"x-bank-users/infra/hasher"
 	"x-bank-users/infra/random"
 	"x-bank-users/infra/swissknife"
@@ -42,9 +43,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	gmailService := gmail.NewService(conf.Gmail.Host, conf.Gmail.SenderName, conf.Gmail.SenderEmail, conf.Gmail.Login, conf.Gmail.Password, conf.Gmail.UrlToActivate, conf.Gmail.UrlToRestore)
+
 	randomGenerator := random.NewService()
 
-	service := web.NewService(&knife, &randomGenerator, &knife, &knife, &passwordHasher, &knife, &knife, &knife, &knife)
+	service := web.NewService(&knife, &randomGenerator, &knife, &gmailService, &passwordHasher, &knife, &knife, &knife, &knife)
 
 	transport := http.NewTransport(service, &jwtRs256)
 

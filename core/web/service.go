@@ -11,15 +11,15 @@ import (
 
 type (
 	Service struct {
-		userStorage            UserStorage
-		randomGenerator        RandomGenerator
-		activationCodeCache    ActivationCodeStorage
-		activationCodeNotifier AuthNotifier
-		passwordHasher         PasswordHasher
-		refreshTokenStorage    RefreshTokenStorage
-		twoFactorCodeStorage   TwoFactorCodeStorage
-		twoFactorCodeNotifier  TwoFactorCodeNotifier
-		recoveryCodeStorage    RecoveryCodeStorage
+		userStorage           UserStorage
+		randomGenerator       RandomGenerator
+		activationCodeCache   ActivationCodeStorage
+		authNotifier          AuthNotifier
+		passwordHasher        PasswordHasher
+		refreshTokenStorage   RefreshTokenStorage
+		twoFactorCodeStorage  TwoFactorCodeStorage
+		twoFactorCodeNotifier TwoFactorCodeNotifier
+		recoveryCodeStorage   RecoveryCodeStorage
 	}
 )
 
@@ -35,15 +35,15 @@ func NewService(
 	recoveryCodeStorage RecoveryCodeStorage,
 ) Service {
 	return Service{
-		userStorage:            userStorage,
-		randomGenerator:        randomGenerator,
-		activationCodeCache:    activationCodeCache,
-		activationCodeNotifier: activationCodeNotifier,
-		passwordHasher:         passwordHasher,
-		refreshTokenStorage:    refreshTokenStorage,
-		twoFactorCodeStorage:   twoFactorCodeStorage,
-		twoFactorCodeNotifier:  twoFactorCodeNotifier,
-		recoveryCodeStorage:    recoveryCodeStorage,
+		userStorage:           userStorage,
+		randomGenerator:       randomGenerator,
+		activationCodeCache:   activationCodeCache,
+		authNotifier:          activationCodeNotifier,
+		passwordHasher:        passwordHasher,
+		refreshTokenStorage:   refreshTokenStorage,
+		twoFactorCodeStorage:  twoFactorCodeStorage,
+		twoFactorCodeNotifier: twoFactorCodeNotifier,
+		recoveryCodeStorage:   recoveryCodeStorage,
 	}
 }
 
@@ -91,7 +91,7 @@ func (s *Service) SignUp(ctx context.Context, login, password, email string) err
 		return err
 	}
 
-	err = s.activationCodeNotifier.SendActivationCode(ctx, email, activationCode)
+	err = s.authNotifier.SendActivationCode(ctx, email, activationCode)
 	return err
 }
 
@@ -217,7 +217,7 @@ func (s *Service) Recovery(ctx context.Context, login, email string) error {
 		return err
 	}
 
-	err = s.activationCodeNotifier.SendRecoveryCode(ctx, email, recoveryCode)
+	err = s.authNotifier.SendRecoveryCode(ctx, email, recoveryCode)
 	if err != nil {
 		return err
 	}
