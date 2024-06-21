@@ -184,3 +184,47 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) {
+	var request TelegramBindRequest
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+	accessToken := r.Header.Get("accessToken")
+	if accessToken == "" {
+		t.errorHandler.setUnauthorizedError(w, nil)
+	}
+	authClaims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(accessToken))
+	if err != nil {
+		t.errorHandler.setUnauthorizedError(w, err)
+		return
+	}
+
+	if err = t.service.BindTelegram(r.Context(), &request.TelegramId, authClaims.Sub); err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (t *Transport) handlerTelegramDelete(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Header.Get("accessToken")
+	if accessToken == "" {
+		t.errorHandler.setUnauthorizedError(w, nil)
+	}
+	authClaims, err := t.authorizer.VerifyAuthorization(r.Context(), []byte(accessToken))
+	if err != nil {
+		t.errorHandler.setUnauthorizedError(w, err)
+		return
+	}
+
+	if err = t.service.DeleteTelegram(r.Context(), authClaims.Sub); err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
