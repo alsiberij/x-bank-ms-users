@@ -24,6 +24,8 @@ var (
 )
 
 func main() {
+	flag.Parse()
+
 	conf, err := config.Read(*configFile)
 	if err != nil {
 		log.Fatal(err)

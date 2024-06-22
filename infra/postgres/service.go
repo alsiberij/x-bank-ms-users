@@ -104,7 +104,7 @@ func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userI
 	panic("implement me")
 }
 
-func (s *Service) GetUserDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
+func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
 	//TODO Реализовать
 	panic("implement me")
 }

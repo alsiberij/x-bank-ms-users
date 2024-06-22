@@ -163,7 +163,7 @@ func (s *Service) UpdatePassword(_ context.Context, id int64, passwordHash []byt
 	return nil
 }
 
-func (s *Service) GetUserDataById(_ context.Context, userId int64) (*web.UserPersonalData, error) {
+func (s *Service) GetUserPersonalDataById(_ context.Context, userId int64) (*web.UserPersonalData, error) {
 	user, ok := s.userStorage[userId]
 	if !ok {
 		return nil, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, nil, "Пользователь не найден")
