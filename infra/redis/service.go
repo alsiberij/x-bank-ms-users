@@ -3,7 +3,6 @@ package redis
 import (
 	"context"
 	"errors"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/redis/go-redis/v9"
 	"strconv"
 	"time"
