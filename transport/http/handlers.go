@@ -19,6 +19,10 @@ func (t *Transport) handlerSignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !t.validate(w, &userData) {
+		return
+	}
+
 	if err := t.service.SignUp(r.Context(), userData.Login, userData.Password, userData.Email); err != nil {
 		t.errorHandler.setError(w, err)
 		return
@@ -185,7 +189,7 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
+func (t *Transport) handlerGetUserPersonalData(w http.ResponseWriter, r *http.Request) {
 	var userData UserPersonalData
 	var response UserPersonalDataResponse
 	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
@@ -196,7 +200,7 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 
 	userId := claims.Sub
 
-	data, err := t.service.GetUserData(r.Context(), userId)
+	data, err := t.service.GetUserPersonalData(r.Context(), userId)
 
 	if err != nil {
 		t.errorHandler.setError(w, err)
@@ -226,6 +230,10 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		t.errorHandler.setError(w, err)
 		return
 	}
+}
+
+func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
+	// TODO Реализовать. См. api.yaml GET /v1/me
 }
 
 func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) {

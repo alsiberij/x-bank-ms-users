@@ -79,6 +79,11 @@ func (h *errorHandler) setUnauthorizedError(w http.ResponseWriter, err error) {
 	}, http.StatusUnauthorized)
 }
 
+func (h *errorHandler) setUnprocessableEntityError(w http.ResponseWriter, ve validationErrors) {
+	w.WriteHeader(http.StatusUnprocessableEntity)
+	_ = json.NewEncoder(w).Encode(&ve)
+}
+
 func (h *errorHandler) setFatalError(w http.ResponseWriter, v interface{}) {
 	var devMessage string
 

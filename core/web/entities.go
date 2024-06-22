@@ -30,5 +30,6 @@ type (
 		Address       string
 		Gender        string
 		LiveInCountry string
+		// TODO Добавить список usersEmployments
 	}
 )
