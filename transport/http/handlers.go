@@ -233,7 +233,41 @@ func (t *Transport) handlerGetUserPersonalData(w http.ResponseWriter, r *http.Re
 }
 
 func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
-	// TODO Реализовать. См. api.yaml GET /v1/me
+	var userData UserDataResponse
+
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	userId := claims.Sub
+
+	data, err := t.service.GetUserData(r.Context(), userId)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	if data != nil {
+		userData = UserDataResponse{
+			Id:         data.Id,
+			UUID:       data.UUID,
+			Login:      data.Login,
+			Email:      data.Email,
+			TelegramId: data.TelegramId,
+			CreatedAt:  data.CreatedAt.Format("2006-01-02"),
+		}
+	} else {
+		userData = UserDataResponse{}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(userData)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
 }
 
 func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) {

@@ -15,6 +15,7 @@ type (
 		UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error
 		UpdateTelegramId(ctx context.Context, telegramId *int64, userId int64) error
 		GetUserPersonalDataById(ctx context.Context, userId int64) (*UserPersonalData, error)
+		GetUserDataById(ctx context.Context, id int64) (*UserData, error)
 	}
 
 	RandomGenerator interface {

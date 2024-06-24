@@ -32,4 +32,15 @@ type (
 		LiveInCountry string
 		// TODO Добавить список usersEmployments
 	}
+
+	UserData struct {
+		Id           int64
+		UUID         string
+		Login        string
+		Email        string
+		PasswordHash []byte
+		TelegramId   *int64
+		IsActivated  bool
+		CreatedAt    time.Time
+	}
 )
