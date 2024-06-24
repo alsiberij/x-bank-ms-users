@@ -75,41 +75,164 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 }
 
 func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.UserDataToSignIn, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT id, password, "isActivated", "telegramId" FROM users WHERE login = @login`
+
+	row := s.db.QueryRowContext(ctx, query,
+		pgx.NamedArgs{
+			"login": login,
+		},
+	)
+
+	if err := row.Err(); err != nil {
+		return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	}
+
+	var userData web.UserDataToSignIn
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	return userData, nil
 }
 
 func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserDataToSignIn, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT password, "isActivated", "telegramId" FROM users WHERE id = @"id"`
+
+	row := s.db.QueryRowContext(ctx, query,
+		pgx.NamedArgs{
+			"id": id,
+		},
+	)
+
+	if err := row.Err(); err != nil {
+		return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	}
+
+	var userData web.UserDataToSignIn
+	if err := row.Scan(&userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	return userData, nil
 }
 
 func (s *Service) ActivateUser(ctx context.Context, userId int64) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET "isActivated" = true WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query,
+		pgx.NamedArgs{
+			"id": userId,
+		},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) UserIdByLoginAndEmail(ctx context.Context, login, email string) (int64, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT id FROM users WHERE login = @login AND email = @email`
+
+	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
+		"login": login,
+		"email": email,
+	},
+	)
+
+	if err := row.Err(); err != nil {
+		return 0, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	}
+
+	var userId int64
+	err := row.Scan(&userId)
+	if err != nil {
+		return 0, s.wrapScanError(err)
+	}
+	return userId, nil
 }
 
 func (s *Service) UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET password = @password WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query, pgx.NamedArgs{
+		"id":       id,
+		"password": passwordHash,
+	},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userId int64) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET "telegramId" = @"telegramId" WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query, pgx.NamedArgs{
+		"id":         userId,
+		"telegramId": telegramId,
+	},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, "liveInCountry" FROM users_personal_data where "id" = @id`
+
+	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
+		"id": userId,
+	},
+	)
+
+	var userPersonalData web.UserPersonalData
+	err := row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, s.wrapScanError(err)
+	}
+
+	return &userPersonalData, nil
 }
 
 func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirationTime time.Duration) error {
-	//TODO Реализовать
-	panic("implement me")
+	_, err := s.db.ExecContext(ctx, `DELETE FROM users WHERE "isActivated" = false AND "createdAt" < $1`, time.Now().Add(-expirationTime))
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
+}
+
+func (s *Service) GetUserDataById(ctx context.Context, id int64) (*web.UserData, error) {
+	const query = `SELECT id, uuid, email, login, password, "telegramId", "createdAt" FROM users WHERE id = @id`
+
+	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
+		"id": id,
+	},
+	)
+
+	if err := row.Err(); err != nil {
+		return &web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	}
+
+	var userData web.UserData
+	err := row.Scan(&userData.Id, &userData.UUID, &userData.Email, &userData.Login, &userData.PasswordHash, &userData.TelegramId, &userData.CreatedAt)
+
+	if err != nil {
+		return &web.UserData{}, s.wrapQueryError(err)
+	}
+
+	return &userData, nil
 }

@@ -9,10 +9,11 @@ import (
 
 type (
 	Config struct {
-		Hs512SecretKey  string `json:"hs512SecretKey"`
-		Rs256PrivateKey string `json:"rs256PrivateKey"`
-		Rs256PublicKey  string `json:"rs256PublicKey"`
-		Gmail           Gmail  `json:"gmail"`
+		Hs512SecretKey  string   `json:"hs512SecretKey"`
+		Rs256PrivateKey string   `json:"rs256PrivateKey"`
+		Rs256PublicKey  string   `json:"rs256PublicKey"`
+		Gmail           Gmail    `json:"gmail"`
+		Postgres        Postgres `json:"postgres"`
 	}
 
 	Gmail struct {
@@ -23,6 +24,15 @@ type (
 		Password      string `json:"password"`
 		UrlToActivate string `json:"urlToActivate"`
 		UrlToRestore  string `json:"urlToRestore"`
+	}
+
+	Postgres struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+		Host     string `json:"host"`
+		Port     int    `json:"port"`
+		DataBase string `json:"dataBase"`
+		MaxCons  int    `json:"maxCons"`
 	}
 )
 
