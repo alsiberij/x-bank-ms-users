@@ -3,7 +3,6 @@ package redis
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/redis/go-redis/v9"
 	"strconv"
 	"strings"
@@ -43,7 +42,6 @@ func (s *Service) SaveActivationCode(ctx context.Context, code string, userId in
 	if err := s.db.Set(ctx, activationCodeKey+code, userId, ttl).Err(); err != nil {
 		return s.wrapQueryError(err)
 	}
-	fmt.Println(code)
 
 	return nil
 }
@@ -56,8 +54,6 @@ func (s *Service) VerifyActivationCode(ctx context.Context, code string) (int64,
 		}
 		return 0, s.wrapQueryError(err)
 	}
-	fmt.Println("verified")
-
 	return userId, nil
 }
 
@@ -66,7 +62,6 @@ func (s *Service) SaveRecoveryCode(ctx context.Context, code string, userId int6
 		return s.wrapQueryError(err)
 	}
 
-	fmt.Println(code)
 	return nil
 }
 
@@ -78,7 +73,6 @@ func (s *Service) VerifyRecoveryCode(ctx context.Context, code string) (int64, e
 		}
 		return 0, s.wrapQueryError(err)
 	}
-	fmt.Println("verified")
 
 	return userId, nil
 }
@@ -91,7 +85,6 @@ func (s *Service) SaveRefreshToken(ctx context.Context, token string, userId int
 		return s.wrapQueryError(err)
 	}
 
-	fmt.Println(token)
 	return nil
 }
 
@@ -103,14 +96,12 @@ func (s *Service) VerifyRefreshToken(ctx context.Context, token string) (int64, 
 		}
 		return 0, s.wrapQueryError(err)
 	}
-	fmt.Println("verified")
 
 	return userId, nil
 }
 
 func (s *Service) ExpireAllByUserId(ctx context.Context, userId int64) error {
 	var cursor uint64
-	fmt.Println(s.db.Keys(ctx, "*"))
 	for {
 		keys, _, err := s.db.Scan(ctx, cursor, strconv.FormatInt(userId, 10)+":*", refreshTokenScanSize).Result()
 		if err != nil {
@@ -129,7 +120,6 @@ func (s *Service) ExpireAllByUserId(ctx context.Context, userId int64) error {
 			break
 		}
 	}
-	fmt.Println("expired")
 	return nil
 }
 
@@ -138,7 +128,6 @@ func (s *Service) Save2FaCode(ctx context.Context, code string, userId int64, tt
 		return s.wrapQueryError(err)
 	}
 
-	fmt.Println(code)
 	return nil
 }
 
