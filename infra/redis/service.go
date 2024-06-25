@@ -18,7 +18,7 @@ type (
 )
 
 const (
-	refreshTokenScanSize = 1000
+	refreshTokenScanSize = 10
 )
 
 func NewService(password, host string, port int, database, maxCons int) (Service, error) {
@@ -81,7 +81,7 @@ func (s *Service) SaveRefreshToken(ctx context.Context, token string, userId int
 	if err := s.db.Set(ctx, refreshTokenKey+token, userId, ttl).Err(); err != nil {
 		return s.wrapQueryError(err)
 	}
-	if err := s.db.Set(ctx, strconv.FormatInt(userId, 10)+":"+token, true, ttl).Err(); err != nil {
+	if err := s.db.Set(ctx, userRefreshTokenKey+strconv.FormatInt(userId, 10)+":"+token, true, ttl).Err(); err != nil {
 		return s.wrapQueryError(err)
 	}
 
@@ -102,23 +102,28 @@ func (s *Service) VerifyRefreshToken(ctx context.Context, token string) (int64, 
 
 func (s *Service) ExpireAllByUserId(ctx context.Context, userId int64) error {
 	var cursor uint64
+	var keysToDelete []string
+
 	for {
-		keys, _, err := s.db.Scan(ctx, cursor, strconv.FormatInt(userId, 10)+":*", refreshTokenScanSize).Result()
+		keys, cursor, err := s.db.Scan(ctx, cursor, userRefreshTokenKey+strconv.FormatInt(userId, 10)+":*", refreshTokenScanSize).Result()
 		if err != nil {
 			return cerrors.NewErrorWithUserMessage(ercodes.ExpireAllByUserIdError, err, "Ошибка сканирования токенов")
 		}
 		for _, key := range keys {
-			token := strings.Split(key, ":")[1]
-			if err = s.db.Del(ctx, refreshTokenKey+token).Err(); err != nil {
-				return cerrors.NewErrorWithUserMessage(ercodes.ExpireAllByUserIdError, err, "Ошибка удаления токенов")
-			}
-			if err = s.db.Del(ctx, key).Err(); err != nil {
-				return cerrors.NewErrorWithUserMessage(ercodes.ExpireAllByUserIdError, err, "Ошибка удаления токенов")
-			}
+			token := strings.Split(key, ":")[3]
+			keysToDelete = append(keysToDelete, refreshTokenKey+token, key)
 		}
 		if cursor == 0 {
 			break
 		}
+	}
+
+	if keysToDelete == nil {
+		return nil
+	}
+
+	if err := s.db.Del(ctx, keysToDelete...).Err(); err != nil {
+		return cerrors.NewErrorWithUserMessage(ercodes.ExpireAllByUserIdError, err, "Ошибка удаления токенов")
 	}
 	return nil
 }
