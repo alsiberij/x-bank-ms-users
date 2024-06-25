@@ -248,18 +248,14 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		t.errorHandler.setError(w, err)
 		return
 	}
-
-	if data != nil {
-		userData = UserDataResponse{
-			Id:         data.Id,
-			UUID:       data.UUID,
-			Login:      data.Login,
-			Email:      data.Email,
-			TelegramId: data.TelegramId,
-			CreatedAt:  data.CreatedAt.Format("2006-01-02"),
-		}
-	} else {
-		userData = UserDataResponse{}
+	
+	userData = UserDataResponse{
+		Id:         data.Id,
+		UUID:       data.UUID,
+		Login:      data.Login,
+		Email:      data.Email,
+		TelegramId: data.TelegramId,
+		CreatedAt:  data.CreatedAt.Format("2006-01-02"),
 	}
 
 	w.WriteHeader(http.StatusOK)

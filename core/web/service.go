@@ -303,6 +303,6 @@ func (s *Service) GetUserPersonalData(ctx context.Context, userId int64) (*UserP
 	return s.userStorage.GetUserPersonalDataById(ctx, userId)
 }
 
-func (s *Service) GetUserData(ctx context.Context, userId int64) (*UserData, error) {
+func (s *Service) GetUserData(ctx context.Context, userId int64) (UserData, error) {
 	return s.userStorage.GetUserDataById(ctx, userId)
 }

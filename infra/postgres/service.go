@@ -75,7 +75,18 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 }
 
 func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.UserDataToSignIn, error) {
-	const query = `SELECT id, password, "isActivated", "telegramId" FROM users WHERE login = @login`
+	var userData web.UserDataToSignIn
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
+	}
+
+	defer tx.Rollback()
+
+	const query = `SELECT id, password, "telegramId", "isActivated" FROM users WHERE login = @login`
+
+	const queryHasPersonalData = `SELECT EXISTS(SELECT 1 FROM users_personal_data WHERE id = (SELECT id FROM users WHERE login = @login))`
 
 	row := s.db.QueryRowContext(ctx, query,
 		pgx.NamedArgs{
@@ -84,19 +95,50 @@ func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.U
 	)
 
 	if err := row.Err(); err != nil {
-		return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
-	var userData web.UserDataToSignIn
-	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.TelegramId, &userData.IsActivated); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return web.UserDataToSignIn{}, s.wrapQueryError(err)
+		}
 		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	rowHasPersonalData := s.db.QueryRowContext(ctx, queryHasPersonalData,
+		pgx.NamedArgs{
+			"login": login,
+		},
+	)
+
+	if err := rowHasPersonalData.Err(); err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
+	}
+
+	if err := rowHasPersonalData.Scan(&userData.HasPersonalData); err != nil {
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
 	return userData, nil
 }
 
 func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserDataToSignIn, error) {
-	const query = `SELECT password, "isActivated", "telegramId" FROM users WHERE id = @"id"`
+	var userData web.UserDataToSignIn
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
+	}
+
+	defer tx.Rollback()
+
+	const query = `SELECT id, password, "isActivated", "telegramId" FROM users WHERE id = @"id"`
+
+	const queryHasPersonalData = `SELECT EXISTS(SELECT 1 FROM users_personal_data WHERE id = @id)`
 
 	row := s.db.QueryRowContext(ctx, query,
 		pgx.NamedArgs{
@@ -104,13 +146,25 @@ func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserData
 		},
 	)
 
-	if err := row.Err(); err != nil {
-		return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return web.UserDataToSignIn{}, s.wrapQueryError(err)
+		}
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
 	}
 
-	var userData web.UserDataToSignIn
-	if err := row.Scan(&userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+	rowHasPersonalData := s.db.QueryRowContext(ctx, queryHasPersonalData,
+		pgx.NamedArgs{
+			"id": id,
+		},
+	)
+
+	if err := rowHasPersonalData.Scan(&userData.HasPersonalData); err != nil {
 		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
 	return userData, nil
@@ -141,12 +195,14 @@ func (s *Service) UserIdByLoginAndEmail(ctx context.Context, login, email string
 	},
 	)
 
-	if err := row.Err(); err != nil {
-		return 0, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+	err := row.Err()
+	if err != nil {
+		return 0, s.wrapQueryError(err)
+
 	}
 
 	var userId int64
-	err := row.Scan(&userId)
+	err = row.Scan(&userId)
 	if err != nil {
 		return 0, s.wrapScanError(err)
 	}
@@ -186,12 +242,14 @@ func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userI
 }
 
 func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
-	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, "liveInCountry" FROM users_personal_data where "id" = @id`
+	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, countries.name FROM users_personal_data JOIN countries on users_personal_data."liveInCountry" = countries.id where users_personal_data."id" = $1`
 
-	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
-		"id": userId,
-	},
-	)
+	row := s.db.QueryRowContext(ctx, query, userId)
+
+	if err := row.Err(); err != nil {
+		return nil, s.wrapQueryError(err)
+	}
+	row = s.db.QueryRowContext(ctx, query, userId)
 
 	var userPersonalData web.UserPersonalData
 	err := row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
@@ -215,8 +273,8 @@ func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirati
 	return nil
 }
 
-func (s *Service) GetUserDataById(ctx context.Context, id int64) (*web.UserData, error) {
-	const query = `SELECT id, uuid, email, login, password, "telegramId", "createdAt" FROM users WHERE id = @id`
+func (s *Service) GetUserDataById(ctx context.Context, id int64) (web.UserData, error) {
+	const query = `SELECT id, uuid, login, email, "telegramId", "createdAt" FROM users WHERE id = @id`
 
 	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
 		"id": id,
@@ -224,15 +282,14 @@ func (s *Service) GetUserDataById(ctx context.Context, id int64) (*web.UserData,
 	)
 
 	if err := row.Err(); err != nil {
-		return &web.UserData{}, cerrors.NewErrorWithUserMessage(ercodes.UserNotFound, err, "Пользователь не найден")
+		return web.UserData{}, s.wrapQueryError(err)
 	}
 
 	var userData web.UserData
-	err := row.Scan(&userData.Id, &userData.UUID, &userData.Email, &userData.Login, &userData.PasswordHash, &userData.TelegramId, &userData.CreatedAt)
-
+	err := row.Scan(&userData.Id, &userData.UUID, &userData.Login, &userData.Email, &userData.TelegramId, &userData.CreatedAt)
 	if err != nil {
-		return &web.UserData{}, s.wrapQueryError(err)
+		return web.UserData{}, s.wrapScanError(err)
 	}
 
-	return &userData, nil
+	return userData, nil
 }

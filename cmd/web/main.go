@@ -49,6 +49,9 @@ func main() {
 	randomGenerator := random.NewService()
 
 	postgresService, err := postgres.NewService(conf.Postgres.Login, conf.Postgres.Password, conf.Postgres.Host, conf.Postgres.Port, conf.Postgres.DataBase, conf.Postgres.MaxCons)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	service := web.NewService(&postgresService, &randomGenerator, &knife, &gmailService, &passwordHasher, &knife, &knife, &knife, &knife)
 

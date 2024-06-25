@@ -34,13 +34,11 @@ type (
 	}
 
 	UserData struct {
-		Id           int64
-		UUID         string
-		Login        string
-		Email        string
-		PasswordHash []byte
-		TelegramId   *int64
-		IsActivated  bool
-		CreatedAt    time.Time
+		Id         int64
+		UUID       string
+		Login      string
+		Email      string
+		TelegramId *int64
+		CreatedAt  time.Time
 	}
 )
