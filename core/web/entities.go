@@ -46,4 +46,13 @@ type (
 		Name    string
 		Address string
 	}
+
+	UserData struct {
+		Id         int64
+		UUID       string
+		Login      string
+		Email      string
+		TelegramId *int64
+		CreatedAt  time.Time
+	}
 )

@@ -14,6 +14,7 @@ type (
 		Rs256PublicKey  string `json:"rs256PublicKey"`
 		Gmail           Gmail  `json:"gmail"`
 		Redis           Redis  `json:"redis"`
+		Postgres        Postgres `json:"postgres"`
 	}
 
 	Gmail struct {
@@ -31,6 +32,15 @@ type (
 		Host     string `json:"host"`
 		Port     int    `json:"port"`
 		Database int    `json:"database"`
+		MaxCons  int    `json:"maxCons"`
+	}
+
+	Postgres struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+		Host     string `json:"host"`
+		Port     int    `json:"port"`
+		DataBase string `json:"dataBase"`
 		MaxCons  int    `json:"maxCons"`
 	}
 )

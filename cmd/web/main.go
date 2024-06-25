@@ -14,6 +14,7 @@ import (
 	"x-bank-users/infra/hasher"
 	"x-bank-users/infra/random"
 	"x-bank-users/infra/redis"
+	"x-bank-users/infra/postgres"
 	"x-bank-users/infra/swissknife"
 	"x-bank-users/transport/http"
 	"x-bank-users/transport/http/jwt"
@@ -52,7 +53,12 @@ func main() {
 
 	randomGenerator := random.NewService()
 
-	service := web.NewService(&knife, &randomGenerator, &redisService, &gmailService, &passwordHasher, &redisService, &redisService, &knife, &redisService)
+	postgresService, err := postgres.NewService(conf.Postgres.Login, conf.Postgres.Password, conf.Postgres.Host, conf.Postgres.Port, conf.Postgres.DataBase, conf.Postgres.MaxCons)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	service := web.NewService(&postgresService, &randomGenerator, &knife, &gmailService, &passwordHasher, &redisService, &redisService, &knife, &knife)
 
 	transport := http.NewTransport(service, &jwtRs256)
 

@@ -75,41 +75,174 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 }
 
 func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.UserDataToSignIn, error) {
-	//TODO Реализовать
-	panic("implement me")
+	var userData web.UserDataToSignIn
+
+	const query = `SELECT users.id, users.password, users."telegramId", users."isActivated", users_personal_data.id IS NOT NULL as "hasPersonalData"
+				   FROM users
+				   LEFT JOIN users_personal_data USING (id) 
+				   WHERE users.login = @login`
+
+	row := s.db.QueryRowContext(ctx, query,
+		pgx.NamedArgs{
+			"login": login,
+		},
+	)
+
+	if err := row.Err(); err != nil {
+		return web.UserDataToSignIn{}, s.wrapQueryError(err)
+	}
+
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.TelegramId, &userData.IsActivated, &userData.HasPersonalData); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.InvalidLoginOrPassword, err, "Неверный логин пароль")
+		}
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	return userData, nil
 }
 
 func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserDataToSignIn, error) {
-	//TODO Реализовать
-	panic("implement me")
+	var userData web.UserDataToSignIn
+
+	const query = `SELECT users.id, users.password, users."telegramId", users."isActivated", users_personal_data.id IS NOT NULL as "hasUsersPersonalData" FROM users LEFT JOIN users_personal_data USING (id) WHERE id = @id`
+
+	row := s.db.QueryRowContext(ctx, query,
+		pgx.NamedArgs{
+			"id": id,
+		},
+	)
+
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId, &userData.HasPersonalData); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return web.UserDataToSignIn{}, s.wrapQueryError(err)
+		}
+		return web.UserDataToSignIn{}, s.wrapScanError(err)
+	}
+
+	return userData, nil
 }
 
 func (s *Service) ActivateUser(ctx context.Context, userId int64) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET "isActivated" = true WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query,
+		pgx.NamedArgs{
+			"id": userId,
+		},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) UserIdByLoginAndEmail(ctx context.Context, login, email string) (int64, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT id FROM users WHERE login = @login AND email = @email`
+
+	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
+		"login": login,
+		"email": email,
+	},
+	)
+
+	err := row.Err()
+	if err != nil {
+		return 0, s.wrapQueryError(err)
+
+	}
+
+	var userId int64
+	err = row.Scan(&userId)
+	if err != nil {
+		return 0, s.wrapScanError(err)
+	}
+	return userId, nil
 }
 
 func (s *Service) UpdatePassword(ctx context.Context, id int64, passwordHash []byte) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET password = @password WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query, pgx.NamedArgs{
+		"id":       id,
+		"password": passwordHash,
+	},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userId int64) error {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `UPDATE users SET "telegramId" = @"telegramId" WHERE id = @id`
+
+	_, err := s.db.ExecContext(ctx, query, pgx.NamedArgs{
+		"id":         userId,
+		"telegramId": telegramId,
+	},
+	)
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
 }
 
 func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
-	//TODO Реализовать
-	panic("implement me")
+	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, countries.name FROM users_personal_data JOIN countries on users_personal_data."liveInCountry" = countries.id where users_personal_data."id" = $1`
+
+	row := s.db.QueryRowContext(ctx, query, userId)
+
+	if err := row.Err(); err != nil {
+		return nil, s.wrapQueryError(err)
+	}
+	row = s.db.QueryRowContext(ctx, query, userId)
+
+	var userPersonalData web.UserPersonalData
+	err := row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, s.wrapScanError(err)
+	}
+
+	return &userPersonalData, nil
 }
 
 func (s *Service) DeleteUsersWithExpiredActivation(ctx context.Context, expirationTime time.Duration) error {
-	//TODO Реализовать
-	panic("implement me")
+	_, err := s.db.ExecContext(ctx, `DELETE FROM users WHERE "isActivated" = false AND "createdAt" < $1`, time.Now().Add(-expirationTime))
+
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
+}
+
+func (s *Service) GetUserDataById(ctx context.Context, id int64) (web.UserData, error) {
+	const query = `SELECT id, uuid, login, email, "telegramId", "createdAt" FROM users WHERE id = @id`
+
+	row := s.db.QueryRowContext(ctx, query, pgx.NamedArgs{
+		"id": id,
+	},
+	)
+
+	if err := row.Err(); err != nil {
+		return web.UserData{}, s.wrapQueryError(err)
+	}
+
+	var userData web.UserData
+	err := row.Scan(&userData.Id, &userData.UUID, &userData.Login, &userData.Email, &userData.TelegramId, &userData.CreatedAt)
+	if err != nil {
+		return web.UserData{}, s.wrapScanError(err)
+	}
+
+	return userData, nil
 }
