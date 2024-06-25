@@ -7,7 +7,7 @@ type (
 		Password string `json:"password"`
 	}
 
-	UserDataToSignIn struct { // TODO Валидация
+	UserDataToSignIn struct {
 		Login    string `json:"login"`
 		Password string `json:"password"`
 	}
@@ -26,12 +26,12 @@ type (
 		Code string `json:"code"`
 	}
 
-	RecoveryRequest struct { // TODO Валидация
+	RecoveryRequest struct {
 		Login string `json:"login"`
 		Email string `json:"email"`
 	}
 
-	RecoveryCodeRequest struct { // TODO Валидация
+	RecoveryCodeRequest struct {
 		Password string `json:"password"`
 	}
 
@@ -39,7 +39,7 @@ type (
 		RefreshToken string `json:"refreshToken"`
 	}
 
-	TelegramBindRequest struct { // TODO Валидация (просто проверить что значения ненулевые)
+	TelegramBindRequest struct {
 		TelegramId int64  `json:"id"`
 		FirstName  string `json:"firstname"`
 		LastName   string `json:"lastname"`

@@ -20,17 +20,31 @@ type (
 	}
 
 	UserPersonalData struct {
-		Id            int64
-		PhoneNumber   string
-		FirstName     string
-		LastName      string
-		FathersName   *string
-		DateOfBirth   time.Time
-		PassportId    string
-		Address       string
-		Gender        string
-		LiveInCountry string
-		// TODO Добавить список usersEmployments
+		Id              int64
+		PhoneNumber     string
+		FirstName       string
+		LastName        string
+		FathersName     *string
+		DateOfBirth     time.Time
+		PassportId      string
+		Address         string
+		Gender          string
+		LiveInCountry   string
+		UserEmployments []UserEmployment
+	}
+
+	UserEmployment struct {
+		UserId      int64
+		WorkplaceId int64
+		Position    string
+		StartDate   time.Time
+		EndDate     time.Time
+	}
+
+	Workplace struct {
+		Id      int64
+		Name    string
+		Address string
 	}
 
 	UserData struct {

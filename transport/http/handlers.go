@@ -49,6 +49,10 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !t.validate(w, &userDataToSignIn) {
+		return
+	}
+
 	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password)
 	if err != nil {
 		t.errorHandler.setError(w, err)
@@ -127,6 +131,10 @@ func (t *Transport) handlerRecovery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !t.validate(w, &request) {
+		return
+	}
+
 	err = t.service.Recovery(r.Context(), request.Login, request.Email)
 	if err != nil {
 		t.errorHandler.setError(w, err)
@@ -141,6 +149,10 @@ func (t *Transport) handlerRecoveryCode(w http.ResponseWriter, r *http.Request) 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	if !t.validate(w, &request) {
 		return
 	}
 
@@ -271,6 +283,10 @@ func (t *Transport) handlerTelegramBind(w http.ResponseWriter, r *http.Request) 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		t.errorHandler.setBadRequestError(w, err)
+		return
+	}
+
+	if !t.validate(w, &request) {
 		return
 	}
 
