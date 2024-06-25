@@ -13,6 +13,7 @@ import (
 	"x-bank-users/infra/gmail"
 	"x-bank-users/infra/hasher"
 	"x-bank-users/infra/random"
+	"x-bank-users/infra/redis"
 	"x-bank-users/infra/swissknife"
 	"x-bank-users/transport/http"
 	"x-bank-users/transport/http/jwt"
@@ -43,11 +44,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	redisService, err := redis.NewService(conf.Redis.Password, conf.Redis.Host, conf.Redis.Port, conf.Redis.Database, conf.Redis.MaxCons)
+	if err != nil {
+		log.Fatal(err)
+	}
 	gmailService := gmail.NewService(conf.Gmail.Host, conf.Gmail.SenderName, conf.Gmail.SenderEmail, conf.Gmail.Login, conf.Gmail.Password, conf.Gmail.UrlToActivate, conf.Gmail.UrlToRestore)
 
 	randomGenerator := random.NewService()
 
-	service := web.NewService(&knife, &randomGenerator, &knife, &gmailService, &passwordHasher, &knife, &knife, &knife, &knife)
+	service := web.NewService(&knife, &randomGenerator, &redisService, &gmailService, &passwordHasher, &redisService, &redisService, &knife, &redisService)
 
 	transport := http.NewTransport(service, &jwtRs256)
 

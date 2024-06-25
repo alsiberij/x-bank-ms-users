@@ -21,4 +21,8 @@ const (
 	PostgresQuery
 	PostgresScan
 	RedisQuery
+	RecoveryCodeNotFound
+	RefreshTokenNotFound
+	TwoFaCodeNotFound
+	ExpireAllByUserIdError
 )

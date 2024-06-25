@@ -39,3 +39,69 @@ func (u *UserDataToSignUp) validate() (ve validationErrors) {
 
 	return
 }
+
+func (u *UserDataToSignIn) validate() (ve validationErrors) {
+	ve = make(validationErrors, 0, 2)
+
+	if !isValidLogin(u.Login) {
+		ve.Add("Неверный логин")
+	}
+
+	if len(u.Password) < 6 || len(u.Password) > 16 {
+		ve.Add("Неверный пароль")
+	}
+
+	return
+}
+
+func (u *RecoveryRequest) validate() (ve validationErrors) {
+	ve = make(validationErrors, 0, 2)
+
+	if !isValidLogin(u.Login) {
+		ve.Add("Неверный логин")
+	}
+
+	if !isValidEmail(u.Email) {
+		ve.Add("Неверный адрес электронной почты")
+	}
+
+	return
+}
+
+func (u *RecoveryCodeRequest) validate() (ve validationErrors) {
+	ve = make(validationErrors, 0, 1)
+
+	if len(u.Password) < 6 || len(u.Password) > 16 {
+		ve.Add("Неверный пароль")
+	}
+
+	return
+}
+
+func (u *TelegramBindRequest) validate() (ve validationErrors) {
+	ve = make(validationErrors, 0, 3)
+
+	if u.TelegramId == 0 {
+		ve.Add("Неверный id")
+	}
+	if len(u.FirstName) == 0 {
+		ve.Add("Неверное имя пользователя")
+	}
+	if len(u.LastName) == 0 {
+		ve.Add("Неверная фамилия пользователя")
+	}
+	if len(u.Username) == 0 {
+		ve.Add("Неверный username")
+	}
+	if len(u.PhotoUrl) == 0 {
+		ve.Add("Неверный путь к фотографии")
+	}
+	if u.AuthDate == 0 {
+		ve.Add("Неверная дата авторизаци")
+	}
+	if len(u.Hash) == 0 {
+		ve.Add("Неверный хэш")
+	}
+
+	return
+}
