@@ -77,16 +77,10 @@ func (s *Service) CreateUser(ctx context.Context, login, email string, passwordH
 func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.UserDataToSignIn, error) {
 	var userData web.UserDataToSignIn
 
-	tx, err := s.db.Begin()
-	if err != nil {
-		return web.UserDataToSignIn{}, s.wrapQueryError(err)
-	}
-
-	defer tx.Rollback()
-
-	const query = `SELECT id, password, "telegramId", "isActivated" FROM users WHERE login = @login`
-
-	const queryHasPersonalData = `SELECT EXISTS(SELECT 1 FROM users_personal_data WHERE id = (SELECT id FROM users WHERE login = @login))`
+	const query = `SELECT users.id, users.password, users."telegramId", users."isActivated", users_personal_data.id IS NOT NULL as "hasPersonalData"
+				   FROM users
+				   LEFT JOIN users_personal_data USING (id) 
+				   WHERE users.login = @login`
 
 	row := s.db.QueryRowContext(ctx, query,
 		pgx.NamedArgs{
@@ -98,29 +92,11 @@ func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.U
 		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
-	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.TelegramId, &userData.IsActivated); err != nil {
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.TelegramId, &userData.IsActivated, &userData.HasPersonalData); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return web.UserDataToSignIn{}, s.wrapQueryError(err)
+			return web.UserDataToSignIn{}, cerrors.NewErrorWithUserMessage(ercodes.InvalidLoginOrPassword, err, "Неверный логин пароль")
 		}
 		return web.UserDataToSignIn{}, s.wrapScanError(err)
-	}
-
-	rowHasPersonalData := s.db.QueryRowContext(ctx, queryHasPersonalData,
-		pgx.NamedArgs{
-			"login": login,
-		},
-	)
-
-	if err := rowHasPersonalData.Err(); err != nil {
-		return web.UserDataToSignIn{}, s.wrapQueryError(err)
-	}
-
-	if err := rowHasPersonalData.Scan(&userData.HasPersonalData); err != nil {
-		return web.UserDataToSignIn{}, s.wrapScanError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
 	return userData, nil
@@ -129,16 +105,7 @@ func (s *Service) GetSignInDataByLogin(ctx context.Context, login string) (web.U
 func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserDataToSignIn, error) {
 	var userData web.UserDataToSignIn
 
-	tx, err := s.db.Begin()
-	if err != nil {
-		return web.UserDataToSignIn{}, s.wrapQueryError(err)
-	}
-
-	defer tx.Rollback()
-
-	const query = `SELECT id, password, "isActivated", "telegramId" FROM users WHERE id = @"id"`
-
-	const queryHasPersonalData = `SELECT EXISTS(SELECT 1 FROM users_personal_data WHERE id = @id)`
+	const query = `SELECT users.id, users.password, users."telegramId", users."isActivated", users_personal_data.id IS NOT NULL as "hasUsersPersonalData" FROM users LEFT JOIN users_personal_data USING (id) WHERE id = @id`
 
 	row := s.db.QueryRowContext(ctx, query,
 		pgx.NamedArgs{
@@ -146,25 +113,11 @@ func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserData
 		},
 	)
 
-	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId); err != nil {
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId, &userData.HasPersonalData); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return web.UserDataToSignIn{}, s.wrapQueryError(err)
 		}
 		return web.UserDataToSignIn{}, s.wrapScanError(err)
-	}
-
-	rowHasPersonalData := s.db.QueryRowContext(ctx, queryHasPersonalData,
-		pgx.NamedArgs{
-			"id": id,
-		},
-	)
-
-	if err := rowHasPersonalData.Scan(&userData.HasPersonalData); err != nil {
-		return web.UserDataToSignIn{}, s.wrapScanError(err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return web.UserDataToSignIn{}, s.wrapQueryError(err)
 	}
 
 	return userData, nil

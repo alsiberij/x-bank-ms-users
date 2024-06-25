@@ -25,4 +25,5 @@ const (
 	RefreshTokenNotFound
 	TwoFaCodeNotFound
 	ExpireAllByUserIdError
+	InvalidLoginOrPassword
 )
