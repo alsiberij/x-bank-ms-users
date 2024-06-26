@@ -10,5 +10,25 @@
     "password": "",
     "urlToActivate": "https://x-bank.alsiberij.com/loading/index.html",
     "urlToRestore": "https://x-bank.alsiberij.com/recovery/index.html"
+  },
+  "redis": {
+    "password": "",
+    "host":  "localhost",
+    "port": 6379,
+    "database":  0,
+    "maxCons": 10
+  },
+  "postgres": {
+    "login":  "postgres",
+    "password": "postgres",
+    "host":  "localhost",
+    "port": 5432,
+    "dataBase":  "postgres",
+    "maxCons": 10
+  },
+  "telegram": {
+    "baseURL": "http://localhost:9991",
+    "login": "",
+    "password": ""
   }
 }

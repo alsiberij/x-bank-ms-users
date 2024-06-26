@@ -113,7 +113,7 @@ func (s *Service) GetSignInDataById(ctx context.Context, id int64) (web.UserData
 		},
 	)
 
-	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.IsActivated, &userData.TelegramId, &userData.HasPersonalData); err != nil {
+	if err := row.Scan(&userData.Id, &userData.PasswordHash, &userData.TelegramId, &userData.IsActivated, &userData.HasPersonalData); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return web.UserDataToSignIn{}, s.wrapQueryError(err)
 		}
