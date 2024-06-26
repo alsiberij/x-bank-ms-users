@@ -5,16 +5,17 @@ import (
 	"os"
 )
 
-// TODO POSTGRES, REDIS
-
 type (
 	Config struct {
-		Hs512SecretKey  string `json:"hs512SecretKey"`
-		Rs256PrivateKey string `json:"rs256PrivateKey"`
-		Rs256PublicKey  string `json:"rs256PublicKey"`
-		Gmail           Gmail  `json:"gmail"`
-		Redis           Redis  `json:"redis"`
+		Hs512SecretKey  string   `json:"hs512SecretKey"`
+		Rs256PrivateKey string   `json:"rs256PrivateKey"`
+		Rs256PublicKey  string   `json:"rs256PublicKey"`
+		Gmail           Gmail    `json:"gmail"`
+		Redis           Redis    `json:"redis"`
 		Postgres        Postgres `json:"postgres"`
+		URL             string   `json:"URL"`
+		Login           string   `json:"login"`
+		Password        string   `json:"password"`
 	}
 
 	Gmail struct {
