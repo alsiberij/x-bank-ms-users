@@ -13,9 +13,7 @@ type (
 		Gmail           Gmail    `json:"gmail"`
 		Redis           Redis    `json:"redis"`
 		Postgres        Postgres `json:"postgres"`
-		URL             string   `json:"URL"`
-		Login           string   `json:"login"`
-		Password        string   `json:"password"`
+		Telegram        Telegram `json:"telegram"`
 	}
 
 	Gmail struct {
@@ -43,6 +41,12 @@ type (
 		Port     int    `json:"port"`
 		DataBase string `json:"dataBase"`
 		MaxCons  int    `json:"maxCons"`
+	}
+
+	Telegram struct {
+		BaseURL  string `json:"baseURL"`
+		Login    string `json:"login"`
+		Password string `json:"password"`
 	}
 )
 

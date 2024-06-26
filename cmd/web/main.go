@@ -57,7 +57,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	telegramService := telegram.NewService(conf.URL, conf.Login, conf.Password)
+	telegramService := telegram.NewService(conf.Telegram.BaseURL, conf.Telegram.Login, conf.Telegram.Password)
 	service := web.NewService(&postgresService, &randomGenerator, &redisService, &gmailService, &passwordHasher, &redisService, &redisService, &telegramService, &redisService)
 
 	transport := http.NewTransport(service, &jwtRs256)

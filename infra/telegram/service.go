@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"strings"
 	"x-bank-users/cerrors"
@@ -12,25 +12,33 @@ import (
 type (
 	Service struct {
 		client   *http.Client
-		url      string
+		baseURL  string
 		login    string
 		password string
 	}
 )
 
-func NewService(URL, Login, Password string) Service {
+func NewService(baseURL, Login, Password string) Service {
 	return Service{
 		client:   &http.Client{},
-		url:      URL,
+		baseURL:  baseURL,
 		login:    Login,
 		password: Password,
 	}
 }
 
 func (s *Service) Send2FaCode(ctx context.Context, telegramId int64, code string) error {
-	reqBody := strings.NewReader(fmt.Sprintf(`{"userId": %d, "code": "%s"}`, telegramId, code))
+	reqBody, err := json.Marshal(map[string]interface{}{
+		"userId": telegramId,
+		"code":   code,
+	})
+	if err != nil {
+		return cerrors.NewErrorWithUserMessage(ercodes.TelegramSendError, err, "Ошибка отправки кода")
+	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", s.url, reqBody)
+	url := s.baseURL + "/internal/v1/2fa"
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(string(reqBody)))
 	if err != nil {
 		return cerrors.NewErrorWithUserMessage(ercodes.TelegramSendError, err, "Ошибка отправки кода")
 	}
@@ -41,6 +49,8 @@ func (s *Service) Send2FaCode(ctx context.Context, telegramId int64, code string
 	if err != nil {
 		return cerrors.NewErrorWithUserMessage(ercodes.TelegramSendError, err, "Ошибка отправки кода")
 	}
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return cerrors.NewErrorWithUserMessage(ercodes.TelegramSendError, nil, "Ошибка отправки кода")
