@@ -12,10 +12,10 @@ import (
 	"x-bank-users/core/web"
 	"x-bank-users/infra/gmail"
 	"x-bank-users/infra/hasher"
+	"x-bank-users/infra/postgres"
 	"x-bank-users/infra/random"
 	"x-bank-users/infra/redis"
-	"x-bank-users/infra/postgres"
-	"x-bank-users/infra/swissknife"
+	"x-bank-users/infra/telegram"
 	"x-bank-users/transport/http"
 	"x-bank-users/transport/http/jwt"
 )
@@ -33,7 +33,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	knife := swissknife.NewService()
 	passwordHasher := hasher.NewService()
 
 	//jwtHs512, err := jwt.NewHS512(conf.Hs512SecretKey)
@@ -58,7 +57,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	service := web.NewService(&postgresService, &randomGenerator, &knife, &gmailService, &passwordHasher, &redisService, &redisService, &knife, &knife)
+	telegramService := telegram.NewService(conf.Telegram.BaseURL, conf.Telegram.Login, conf.Telegram.Password)
+	service := web.NewService(&postgresService, &randomGenerator, &redisService, &gmailService, &passwordHasher, &redisService, &redisService, &telegramService, &redisService)
 
 	transport := http.NewTransport(service, &jwtRs256)
 

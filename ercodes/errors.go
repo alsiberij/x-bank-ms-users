@@ -26,4 +26,5 @@ const (
 	TwoFaCodeNotFound
 	ExpireAllByUserIdError
 	InvalidLoginOrPassword
+	TelegramSendError
 )
