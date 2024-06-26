@@ -1,10 +1,10 @@
 package telegram
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"x-bank-users/cerrors"
 	"x-bank-users/ercodes"
 )
@@ -38,7 +38,7 @@ func (s *Service) Send2FaCode(ctx context.Context, telegramId int64, code string
 
 	url := s.baseURL + "/internal/v1/2fa"
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, strings.NewReader(string(reqBody)))
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
 	if err != nil {
 		return cerrors.NewErrorWithUserMessage(ercodes.TelegramSendError, err, "Ошибка отправки кода")
 	}
