@@ -102,10 +102,12 @@ func (s *Service) VerifyRefreshToken(ctx context.Context, token string) (int64, 
 
 func (s *Service) ExpireAllByUserId(ctx context.Context, userId int64) error {
 	var cursor uint64
+	var keys []string
+	var err error
 	var keysToDelete []string
 
 	for {
-		keys, cursor, err := s.db.Scan(ctx, cursor, userRefreshTokenKey+strconv.FormatInt(userId, 10)+":*", refreshTokenScanSize).Result()
+		keys, cursor, err = s.db.Scan(ctx, cursor, userRefreshTokenKey+strconv.FormatInt(userId, 10)+":*", refreshTokenScanSize).Result()
 		if err != nil {
 			return cerrors.NewErrorWithUserMessage(ercodes.ExpireAllByUserIdError, err, "Ошибка сканирования токенов")
 		}

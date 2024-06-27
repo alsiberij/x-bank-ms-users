@@ -266,7 +266,7 @@ func (s *Service) Refresh(ctx context.Context, token string) (SignInResult, erro
 		IssuedAt:        date.Unix(),
 		ExpiresAt:       date.Add(claimsTtl).Unix(),
 		Sub:             userId,
-		Is2FAToken:      userData.TelegramId != nil,
+		Is2FAToken:      false,
 		HasPersonalData: userData.HasPersonalData,
 	}
 

@@ -179,7 +179,7 @@ func (s *Service) UpdatePassword(ctx context.Context, id int64, passwordHash []b
 }
 
 func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userId int64) error {
-	const query = `UPDATE users SET "telegramId" = @"telegramId" WHERE id = @id`
+	const query = `UPDATE users SET "telegramId" = @telegramId WHERE id = @id`
 
 	_, err := s.db.ExecContext(ctx, query, pgx.NamedArgs{
 		"id":         userId,
