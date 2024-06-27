@@ -204,12 +204,11 @@ func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*w
 
 	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, countries.name FROM users_personal_data JOIN countries on users_personal_data."liveInCountry" = countries.id where users_personal_data."id" = $1`
 
-	row := s.db.QueryRowContext(ctx, query, userId)
+	row := tx.QueryRowContext(ctx, query, userId)
 
 	if err := row.Err(); err != nil {
 		return nil, s.wrapQueryError(err)
 	}
-	row = s.db.QueryRowContext(ctx, query, userId)
 
 	var userPersonalData web.UserPersonalData
 	err = row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
@@ -222,7 +221,7 @@ func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*w
 
 	const queryUserEmployment = `SELECT "name", "address", "position", "startDate", "endDate" FROM users_employments JOIN workplaces on users_employments."workplaceId" = workplaces.id WHERE "userId" = @id`
 
-	rows, err := s.db.QueryContext(ctx, queryUserEmployment, pgx.NamedArgs{
+	rows, err := tx.QueryContext(ctx, queryUserEmployment, pgx.NamedArgs{
 		"id": userId,
 	},
 	)
