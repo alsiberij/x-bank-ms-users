@@ -422,6 +422,7 @@ components:
           type: string
         endDate:
           type: string
+          nullable: true
       required:
         - workplace
         - position

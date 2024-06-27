@@ -243,7 +243,12 @@ func (t *Transport) handlerGetUserPersonalData(w http.ResponseWriter, r *http.Re
 				},
 				Position:  employment.Position,
 				StartDate: employment.StartDate.Format("2006-01-02"),
-				EndDate:   employment.EndDate.Format("2006-01-02"),
+			}
+			if employment.EndDate != nil {
+				endDate := employment.EndDate.Format("2006-01-02")
+				userEmployments.EndDate = &endDate
+			} else {
+				userEmployments.EndDate = nil
 			}
 
 			employments = append(employments, userEmployments)

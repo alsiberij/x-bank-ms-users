@@ -66,7 +66,7 @@ type (
 		Workplace Workplace `json:"workplace"`
 		Position  string    `json:"position"`
 		StartDate string    `json:"startDate"`
-		EndDate   string    `json:"endDate"`
+		EndDate   *string   `json:"endDate"`
 	}
 
 	Workplace struct {
