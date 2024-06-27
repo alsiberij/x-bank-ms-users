@@ -203,6 +203,7 @@ func (t *Transport) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 
 func (t *Transport) handlerGetUserPersonalData(w http.ResponseWriter, r *http.Request) {
 	var userData UserPersonalData
+	var userEmployments UserEmployment
 	var response UserPersonalDataResponse
 	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
 	if !ok {
@@ -232,6 +233,24 @@ func (t *Transport) handlerGetUserPersonalData(w http.ResponseWriter, r *http.Re
 			LiveInCountry: data.LiveInCountry,
 		}
 
+		employments := make([]UserEmployment, 0)
+
+		for _, employment := range data.UserEmployments {
+			userEmployments = UserEmployment{
+				Workplace: Workplace{
+					Name:    employment.Workplace.Name,
+					Address: employment.Workplace.Address,
+				},
+				Position:  employment.Position,
+				StartDate: employment.StartDate.Format("2006-01-02"),
+				EndDate:   employment.EndDate.Format("2006-01-02"),
+			}
+
+			employments = append(employments, userEmployments)
+		}
+
+		userData.UserEmployments = employments
+
 		response.PersonalData = &userData
 	} else {
 		response.PersonalData = nil
@@ -260,7 +279,7 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		t.errorHandler.setError(w, err)
 		return
 	}
-	
+
 	userData = UserDataResponse{
 		Id:         data.Id,
 		UUID:       data.UUID,
