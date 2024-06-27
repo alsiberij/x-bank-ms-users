@@ -108,7 +108,7 @@ func (s *Service) ActivateAccount(ctx context.Context, code string) error {
 	return nil
 }
 
-func (s *Service) SignIn(ctx context.Context, login, password string) (SignInResult, error) {
+func (s *Service) SignIn(ctx context.Context, login, password, agent, ip string) (SignInResult, error) {
 	userData, err := s.userStorage.GetSignInDataByLogin(ctx, login)
 	if err != nil {
 		return SignInResult{}, err
@@ -127,6 +127,10 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 	if userData.TelegramId == nil {
 		refreshToken, err = s.getNewToken(ctx, userData.Id)
 		if err != nil {
+			return SignInResult{}, err
+		}
+
+		if err = s.userStorage.UpdateUsersAuthHistory(ctx, userData.Id, agent, ip); err != nil {
 			return SignInResult{}, err
 		}
 	} else {
@@ -158,7 +162,7 @@ func (s *Service) SignIn(ctx context.Context, login, password string) (SignInRes
 	}, nil
 }
 
-func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string) (SignInResult, error) {
+func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code, agent, ip string) (SignInResult, error) {
 	userId, err := s.twoFactorCodeStorage.Verify2FaCode(ctx, code)
 	if err != nil {
 		return SignInResult{}, err
@@ -170,6 +174,10 @@ func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code string
 
 	personalData, err := s.userStorage.GetSignInDataById(ctx, userId)
 	if err != nil {
+		return SignInResult{}, err
+	}
+
+	if err = s.userStorage.UpdateUsersAuthHistory(ctx, personalData.Id, agent, ip); err != nil {
 		return SignInResult{}, err
 	}
 

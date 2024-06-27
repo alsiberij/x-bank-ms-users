@@ -246,3 +246,21 @@ func (s *Service) GetUserDataById(ctx context.Context, id int64) (web.UserData, 
 
 	return userData, nil
 }
+
+func (s *Service) UpdateUsersAuthHistory(ctx context.Context, userId int64, agent, ip string) error {
+	const query = `INSERT INTO users_auth_history ("userId", "agent", ip, timestamp) VALUES (@userId, @agent, @ip, @timestamp)`
+
+	row := s.db.QueryRowContext(ctx, query,
+		pgx.NamedArgs{
+			"userId":    userId,
+			"agent":     agent,
+			"ip":        ip,
+			"timestamp": time.Now(),
+		},
+	)
+
+	if err := row.Err(); err != nil {
+		return s.wrapQueryError(err)
+	}
+	return nil
+}

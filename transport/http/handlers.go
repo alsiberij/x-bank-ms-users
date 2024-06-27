@@ -53,7 +53,10 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password)
+	agent := r.Header.Get("User-Agent")
+	ip := r.Header.Get("X-Real-Ip")
+
+	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password, agent, ip)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
@@ -97,8 +100,10 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := userDataToSignIn2FA.Code
+	agent := r.Header.Get("User-Agent")
+	ip := r.Header.Get("X-Real-Ip")
 
-	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code)
+	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code, agent, ip)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
@@ -260,7 +265,7 @@ func (t *Transport) handlerGetUserData(w http.ResponseWriter, r *http.Request) {
 		t.errorHandler.setError(w, err)
 		return
 	}
-	
+
 	userData = UserDataResponse{
 		Id:         data.Id,
 		UUID:       data.UUID,
