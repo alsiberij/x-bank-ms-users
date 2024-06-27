@@ -34,15 +34,13 @@ type (
 	}
 
 	UserEmployment struct {
-		UserId      int64
-		WorkplaceId int64
-		Position    string
-		StartDate   time.Time
-		EndDate     time.Time
+		Workplace Workplace
+		Position  string
+		StartDate time.Time
+		EndDate   time.Time
 	}
 
 	Workplace struct {
-		Id      int64
 		Name    string
 		Address string
 	}
