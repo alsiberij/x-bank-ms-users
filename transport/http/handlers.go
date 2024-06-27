@@ -337,20 +337,18 @@ func (t *Transport) handlerAuthHistory(w http.ResponseWriter, r *http.Request) {
 		t.errorHandler.setError(w, err)
 		return
 	}
-
-	var responseItems []UserAuthHistoryResponseItem
+	
 	var response UserAuthHistoryResponse
 	if authHistory != nil {
-		for _, entry := range *authHistory {
+		for _, entry := range authHistory {
 			userHist := UserAuthHistoryResponseItem{
 				Id:        entry.Id,
 				Agent:     entry.Agent,
 				Ip:        entry.Ip,
-				Timestamp: entry.Timestamp,
+				Timestamp: entry.Timestamp.Format("2006.01.02 15:04:05"),
 			}
-			responseItems = append(responseItems, userHist)
+			response.Items = append(response.Items, userHist)
 		}
-		response.Items = &responseItems
 	} else {
 		response.Items = nil
 	}

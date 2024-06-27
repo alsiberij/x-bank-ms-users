@@ -17,7 +17,7 @@ type (
 		GetUserPersonalDataById(ctx context.Context, userId int64) (*UserPersonalData, error)
 		GetUserDataById(ctx context.Context, id int64) (UserData, error)
 		AddUsersAuthHistory(ctx context.Context, userId int64, agent, ip string) error
-		GetUserAuthHistory(ctx context.Context, userId int64) (*[]UserAuthHistoryData, error)
+		GetUserAuthHistory(ctx context.Context, userId int64) ([]UserAuthHistoryData, error)
 	}
 
 	RandomGenerator interface {

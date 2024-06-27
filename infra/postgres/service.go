@@ -248,24 +248,23 @@ func (s *Service) GetUserDataById(ctx context.Context, id int64) (web.UserData, 
 }
 
 func (s *Service) AddUsersAuthHistory(ctx context.Context, userId int64, agent, ip string) error {
-	const query = `INSERT INTO users_auth_history ("userId", "agent", ip, timestamp) VALUES (@userId, @agent, @ip, @timestamp)`
+	const query = `INSERT INTO users_auth_history ("userId", "agent", ip) VALUES (@userId, @agent, @ip)`
 
-	row := s.db.QueryRowContext(ctx, query,
+	_, err := s.db.ExecContext(ctx, query,
 		pgx.NamedArgs{
-			"userId":    userId,
-			"agent":     agent,
-			"ip":        ip,
-			"timestamp": time.Now(),
+			"userId": userId,
+			"agent":  agent,
+			"ip":     ip,
 		},
 	)
-
-	if err := row.Err(); err != nil {
+	if err != nil {
 		return s.wrapQueryError(err)
 	}
+
 	return nil
 }
 
-func (s *Service) GetUserAuthHistory(ctx context.Context, userId int64) (*[]web.UserAuthHistoryData, error) {
+func (s *Service) GetUserAuthHistory(ctx context.Context, userId int64) ([]web.UserAuthHistoryData, error) {
 	const query = `SELECT "userId", "agent", "ip", "timestamp" FROM users_auth_history WHERE "userId" = $1 ORDER BY timestamp DESC `
 
 	rows, err := s.db.QueryContext(ctx, query, userId)
@@ -283,5 +282,5 @@ func (s *Service) GetUserAuthHistory(ctx context.Context, userId int64) (*[]web.
 		userAuthHistoryData = append(userAuthHistoryData, userAuthHist)
 	}
 
-	return &userAuthHistoryData, nil
+	return userAuthHistoryData, nil
 }

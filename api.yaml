@@ -457,7 +457,7 @@ components:
             example: "198.51.100.17"
           timestamp:
             type: string
-            example: "2024-06-27T17:42:41.035028Z"
+            example: "2024.06.27 17:42:41"
         required:
           - id
           - agent

@@ -315,6 +315,6 @@ func (s *Service) GetUserData(ctx context.Context, userId int64) (UserData, erro
 	return s.userStorage.GetUserDataById(ctx, userId)
 }
 
-func (s *Service) GetAuthHistory(ctx context.Context, userId int64) (*[]UserAuthHistoryData, error) {
+func (s *Service) GetAuthHistory(ctx context.Context, userId int64) ([]UserAuthHistoryData, error) {
 	return s.userStorage.GetUserAuthHistory(ctx, userId)
 }

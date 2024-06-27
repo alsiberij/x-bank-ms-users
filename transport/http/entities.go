@@ -1,7 +1,5 @@
 package http
 
-import "time"
-
 type (
 	UserDataToSignUp struct {
 		Email    string `json:"email"`
@@ -77,13 +75,13 @@ type (
 	}
 
 	UserAuthHistoryResponseItem struct {
-		Id        int64     `json:"id"`
-		Agent     string    `json:"agent"`
-		Ip        string    `json:"ip"`
-		Timestamp time.Time `json:"timestamp"`
+		Id        int64  `json:"id"`
+		Agent     string `json:"agent"`
+		Ip        string `json:"ip"`
+		Timestamp string `json:"timestamp"`
 	}
 
 	UserAuthHistoryResponse struct {
-		Items *[]UserAuthHistoryResponseItem `json:"items"`
+		Items []UserAuthHistoryResponseItem `json:"items"`
 	}
 )
