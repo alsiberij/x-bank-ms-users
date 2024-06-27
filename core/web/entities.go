@@ -53,4 +53,11 @@ type (
 		TelegramId *int64
 		CreatedAt  time.Time
 	}
+
+	UserAuthHistoryData struct {
+		Id        int64
+		Agent     string
+		Ip        string
+		Timestamp time.Time
+	}
 )

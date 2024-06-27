@@ -323,3 +323,42 @@ func (t *Transport) handlerTelegramDelete(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (t *Transport) handlerAuthHistory(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	userId := claims.Sub
+	authHistory, err := t.service.GetAuthHistory(r.Context(), userId)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+
+	var responseItems []UserAuthHistoryResponseItem
+	var response UserAuthHistoryResponse
+	if authHistory != nil {
+		for _, entry := range *authHistory {
+			userHist := UserAuthHistoryResponseItem{
+				Id:        entry.Id,
+				Agent:     entry.Agent,
+				Ip:        entry.Ip,
+				Timestamp: entry.Timestamp,
+			}
+			responseItems = append(responseItems, userHist)
+		}
+		response.Items = &responseItems
+	} else {
+		response.Items = nil
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+}

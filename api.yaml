@@ -5,6 +5,7 @@ info:
   version: 1.0.0
 servers:
   - url: 'https://x-bank.alsiberij.com/ms-users/'
+  - url: 'http://localhost:8080/'
 paths:
   /v1/me:
     get:
@@ -43,6 +44,29 @@ paths:
                 properties:
                   personalData:
                     $ref: '#/components/schemas/PersonalDataResponse'
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /v1/me/auth-history:
+    get:
+      summary: Получить историю входов в аккаунт
+      tags:
+        - User data
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    $ref: '#/components/schemas/AuthHistoryResponse'
         400:
           description: Error
           content:
@@ -417,3 +441,25 @@ components:
         - email
         - telegramId
         - createdAt
+
+    AuthHistoryResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+          agent:
+            type: string
+            example: "PostmanRuntime/7.37.3"
+          ip:
+            type: string
+            example: "198.51.100.17"
+          timestamp:
+            type: string
+            example: "2024-06-27T17:42:41.035028Z"
+        required:
+          - id
+          - agent
+          - ip
+          - timestamp

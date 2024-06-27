@@ -1,5 +1,7 @@
 package http
 
+import "time"
+
 type (
 	UserDataToSignUp struct {
 		Email    string `json:"email"`
@@ -72,5 +74,16 @@ type (
 		Email      string `json:"email"`
 		TelegramId *int64 `json:"telegramId"`
 		CreatedAt  string `json:"createdAt"`
+	}
+
+	UserAuthHistoryResponseItem struct {
+		Id        int64     `json:"id"`
+		Agent     string    `json:"agent"`
+		Ip        string    `json:"ip"`
+		Timestamp time.Time `json:"timestamp"`
+	}
+
+	UserAuthHistoryResponse struct {
+		Items *[]UserAuthHistoryResponseItem `json:"items"`
 	}
 )

@@ -130,7 +130,7 @@ func (s *Service) SignIn(ctx context.Context, login, password, agent, ip string)
 			return SignInResult{}, err
 		}
 
-		if err = s.userStorage.UpdateUsersAuthHistory(ctx, userData.Id, agent, ip); err != nil {
+		if err = s.userStorage.AddUsersAuthHistory(ctx, userData.Id, agent, ip); err != nil {
 			return SignInResult{}, err
 		}
 	} else {
@@ -177,7 +177,7 @@ func (s *Service) SignIn2FA(ctx context.Context, claims auth.Claims, code, agent
 		return SignInResult{}, err
 	}
 
-	if err = s.userStorage.UpdateUsersAuthHistory(ctx, personalData.Id, agent, ip); err != nil {
+	if err = s.userStorage.AddUsersAuthHistory(ctx, personalData.Id, agent, ip); err != nil {
 		return SignInResult{}, err
 	}
 
@@ -313,4 +313,8 @@ func (s *Service) GetUserPersonalData(ctx context.Context, userId int64) (*UserP
 
 func (s *Service) GetUserData(ctx context.Context, userId int64) (UserData, error) {
 	return s.userStorage.GetUserDataById(ctx, userId)
+}
+
+func (s *Service) GetAuthHistory(ctx context.Context, userId int64) (*[]UserAuthHistoryData, error) {
+	return s.userStorage.GetUserAuthHistory(ctx, userId)
 }
