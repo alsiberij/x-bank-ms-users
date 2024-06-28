@@ -280,3 +280,41 @@ func (s *Service) GetUserDataById(ctx context.Context, id int64) (web.UserData, 
 
 	return userData, nil
 }
+
+func (s *Service) AddUsersAuthHistory(ctx context.Context, userId int64, agent, ip string) error {
+	const query = `INSERT INTO users_auth_history ("userId", "agent", ip) VALUES (@userId, @agent, @ip)`
+
+	_, err := s.db.ExecContext(ctx, query,
+		pgx.NamedArgs{
+			"userId": userId,
+			"agent":  agent,
+			"ip":     ip,
+		},
+	)
+	if err != nil {
+		return s.wrapQueryError(err)
+	}
+
+	return nil
+}
+
+func (s *Service) GetUserAuthHistory(ctx context.Context, userId int64) ([]web.UserAuthHistoryData, error) {
+	const query = `SELECT "userId", "agent", "ip", "timestamp" FROM users_auth_history WHERE "userId" = $1 ORDER BY timestamp DESC `
+
+	rows, err := s.db.QueryContext(ctx, query, userId)
+
+	if err != nil {
+		return nil, s.wrapQueryError(err)
+	}
+
+	var userAuthHistoryData []web.UserAuthHistoryData
+	for rows.Next() {
+		var userAuthHist web.UserAuthHistoryData
+		if err = rows.Scan(&userAuthHist.Id, &userAuthHist.Agent, &userAuthHist.Ip, &userAuthHist.Timestamp); err != nil {
+			return nil, s.wrapScanError(err)
+		}
+		userAuthHistoryData = append(userAuthHistoryData, userAuthHist)
+	}
+
+	return userAuthHistoryData, nil
+}

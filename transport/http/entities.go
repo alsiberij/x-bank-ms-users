@@ -86,4 +86,15 @@ type (
 		TelegramId *int64 `json:"telegramId"`
 		CreatedAt  string `json:"createdAt"`
 	}
+
+	UserAuthHistoryResponseItem struct {
+		Id        int64  `json:"id"`
+		Agent     string `json:"agent"`
+		Ip        string `json:"ip"`
+		Timestamp string `json:"timestamp"`
+	}
+
+	UserAuthHistoryResponse struct {
+		Items []UserAuthHistoryResponseItem `json:"items"`
+	}
 )

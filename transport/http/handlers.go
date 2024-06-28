@@ -53,7 +53,10 @@ func (t *Transport) handlerSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password)
+	agent := r.Header.Get("User-Agent")
+	ip := r.Header.Get("X-Real-Ip")
+
+	signInResult, err := t.service.SignIn(r.Context(), userDataToSignIn.Login, userDataToSignIn.Password, agent, ip)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
@@ -97,8 +100,10 @@ func (t *Transport) handlerSignIn2FA(w http.ResponseWriter, r *http.Request) {
 	}
 
 	code := userDataToSignIn2FA.Code
+	agent := r.Header.Get("User-Agent")
+	ip := r.Header.Get("X-Real-Ip")
 
-	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code)
+	signInResult, err := t.service.SignIn2FA(r.Context(), *claims, code, agent, ip)
 	if err != nil {
 		t.errorHandler.setError(w, err)
 		return
@@ -341,4 +346,41 @@ func (t *Transport) handlerTelegramDelete(w http.ResponseWriter, r *http.Request
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (t *Transport) handlerAuthHistory(w http.ResponseWriter, r *http.Request) {
+	claims, ok := r.Context().Value(t.claimsCtxKey).(*auth.Claims)
+	if !ok {
+		t.errorHandler.setError(w, errors.New("отсутствуют claims в контексте"))
+		return
+	}
+
+	userId := claims.Sub
+	authHistory, err := t.service.GetAuthHistory(r.Context(), userId)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
+	
+	var response UserAuthHistoryResponse
+	if authHistory != nil {
+		for _, entry := range authHistory {
+			userHist := UserAuthHistoryResponseItem{
+				Id:        entry.Id,
+				Agent:     entry.Agent,
+				Ip:        entry.Ip,
+				Timestamp: entry.Timestamp.Format("2006.01.02 15:04:05"),
+			}
+			response.Items = append(response.Items, userHist)
+		}
+	} else {
+		response.Items = nil
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		t.errorHandler.setError(w, err)
+		return
+	}
 }
