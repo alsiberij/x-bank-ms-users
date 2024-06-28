@@ -379,6 +379,9 @@ components:
           type: string
         liveInCountry:
           type: string
+        userEmployment:
+          $ref: '#/components/schemas/UserEmployment'
+
       required:
         - phoneNumber
         - firstName
@@ -389,7 +392,55 @@ components:
         - address
         - gender
         - liveInCountry
-      example: null
+        - userEmployment
+      example:
+        phoneNumber: +1234567890
+        firstName: Иван
+        lastName: Иванов
+        fathersName: Иванович
+        dateOfBirth: 01.01.2004
+        passportId: 1234567890
+        address: Минск, улица, дом
+        liveInCountry: Беларусь
+        userEmployment:
+          workplace:
+            name: ООО ЛВО
+            address: Минск, улица, дом
+          position: позиция
+          startDate: 01.01.2022
+          endDate: 01.01.2023
+
+    UserEmployment:
+      type: object
+      nullable: true
+      properties:
+        workplace:
+          $ref: '#/components/schemas/WorkPlace'
+        position:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+          nullable: true
+      required:
+        - workplace
+        - position
+        - startDate
+        - endDate
+
+    WorkPlace:
+      type: object
+      nullable: true
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+
+      required:
+        - name
+        - address
 
     UserDataResponse:
       type: object

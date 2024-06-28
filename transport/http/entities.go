@@ -50,15 +50,28 @@ type (
 	}
 
 	UserPersonalData struct {
-		PhoneNumber   string  `json:"phoneNumber"`
-		FirstName     string  `json:"firstName"`
-		LastName      string  `json:"lastName"`
-		FathersName   *string `json:"fathersName"`
-		DateOfBirth   string  `json:"dateOfBirth"`
-		PassportId    string  `json:"passportId"`
-		Address       string  `json:"address"`
-		Gender        string  `json:"gender"`
-		LiveInCountry string  `json:"liveInCountry"`
+		PhoneNumber     string           `json:"phoneNumber"`
+		FirstName       string           `json:"firstName"`
+		LastName        string           `json:"lastName"`
+		FathersName     *string          `json:"fathersName"`
+		DateOfBirth     string           `json:"dateOfBirth"`
+		PassportId      string           `json:"passportId"`
+		Address         string           `json:"address"`
+		Gender          string           `json:"gender"`
+		LiveInCountry   string           `json:"liveInCountry"`
+		UserEmployments []UserEmployment `json:"userEmployments"`
+	}
+
+	UserEmployment struct {
+		Workplace Workplace `json:"workplace"`
+		Position  string    `json:"position"`
+		StartDate string    `json:"startDate"`
+		EndDate   *string   `json:"endDate"`
+	}
+
+	Workplace struct {
+		Name    string `json:"name"`
+		Address string `json:"address"`
 	}
 
 	UserPersonalDataResponse struct {

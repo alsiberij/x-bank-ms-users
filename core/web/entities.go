@@ -37,7 +37,7 @@ type (
 		Workplace Workplace
 		Position  string
 		StartDate time.Time
-		EndDate   time.Time
+		EndDate   *time.Time
 	}
 
 	Workplace struct {

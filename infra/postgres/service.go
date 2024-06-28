@@ -195,22 +195,56 @@ func (s *Service) UpdateTelegramId(ctx context.Context, telegramId *int64, userI
 }
 
 func (s *Service) GetUserPersonalDataById(ctx context.Context, userId int64) (*web.UserPersonalData, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, s.wrapQueryError(err)
+	}
+
+	defer tx.Rollback()
+
 	const query = `SELECT "phoneNumber", "firstName", "lastName", "fathersName", "dateOfBirth", "passportId", "address", gender, countries.name FROM users_personal_data JOIN countries on users_personal_data."liveInCountry" = countries.id where users_personal_data."id" = $1`
 
-	row := s.db.QueryRowContext(ctx, query, userId)
+	row := tx.QueryRowContext(ctx, query, userId)
 
 	if err := row.Err(); err != nil {
 		return nil, s.wrapQueryError(err)
 	}
-	row = s.db.QueryRowContext(ctx, query, userId)
 
 	var userPersonalData web.UserPersonalData
-	err := row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
+	err = row.Scan(&userPersonalData.PhoneNumber, &userPersonalData.FirstName, &userPersonalData.LastName, &userPersonalData.FathersName, &userPersonalData.DateOfBirth, &userPersonalData.PassportId, &userPersonalData.Address, &userPersonalData.Gender, &userPersonalData.LiveInCountry)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, s.wrapScanError(err)
+	}
+
+	const queryUserEmployment = `SELECT "name", "address", "position", "startDate", "endDate" FROM users_employments JOIN workplaces on users_employments."workplaceId" = workplaces.id WHERE "userId" = @id`
+
+	rows, err := tx.QueryContext(ctx, queryUserEmployment, pgx.NamedArgs{
+		"id": userId,
+	},
+	)
+	if err != nil {
+		return nil, s.wrapQueryError(err)
+	}
+
+	var userEmployments []web.UserEmployment
+	var userEmployment web.UserEmployment
+	for rows.Next() {
+
+		err := rows.Scan(&userEmployment.Workplace.Name, &userEmployment.Workplace.Address, &userEmployment.Position, &userEmployment.StartDate, &userEmployment.EndDate)
+		if err != nil {
+			return nil, s.wrapScanError(err)
+		}
+		userEmployments = append(userEmployments, userEmployment)
+	}
+
+	userPersonalData.UserEmployments = userEmployments
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, s.wrapQueryError(err)
 	}
 
 	return &userPersonalData, nil
